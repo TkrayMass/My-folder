@@ -1,0 +1,135 @@
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.BUDGET_WEEKLY_CASELOAD_BENEFIT_T1()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS OWNER
+AS '
+DECLARE
+  computed_sat_date DATE;
+  snap_date_raw     DATE;
+  snap_date_str     STRING;
+  snap_table        STRING;
+  obj_exists        NUMBER;
+  sql_cmd           STRING;
+BEGIN
+  /* 1) last Saturday */
+  computed_sat_date :=
+    DATEADD(DAY, -MOD(DAYOFWEEKISO(CURRENT_DATE()) - 6 + 7, 7), CURRENT_DATE());
+
+  snap_date_str := TO_CHAR(computed_sat_date, ''YYYYMMDD'');
+
+  /* 2) If BG_SNAP_<lastSaturday> missing, fallback to latest existing snap */
+  SELECT COUNT(*)
+    INTO obj_exists
+  FROM MHTEAM.INFORMATION_SCHEMA.TABLES
+  WHERE TABLE_SCHEMA = ''MHA''
+    AND TABLE_NAME   = ''BG_SNAP_'' || :snap_date_str;
+
+  IF (obj_exists = 0) THEN
+    SELECT MAX(REPLACE(TABLE_NAME,''BG_SNAP_'',''''))
+      INTO snap_date_str
+    FROM MHTEAM.INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_SCHEMA = ''MHA''
+      AND TABLE_NAME LIKE ''BG_SNAP_%''
+      AND REGEXP_LIKE(TABLE_NAME, ''^BG_SNAP_[0-9]{8}$'');
+
+    IF (snap_date_str IS NULL) THEN
+      RETURN ''ERROR: No BG_SNAP_YYYYMMDD tables found in MHTEAM.MHA'';
+    END IF;
+  END IF;
+
+  snap_date_raw := TO_DATE(snap_date_str,''YYYYMMDD'');
+  snap_table    := ''MHTEAM.MHA.BG_SNAP_'' || snap_date_str;
+
+  /* 3) MERGE values (overwrite-safe)
+        + Add synthetic row: Total MH (Total excluding Non-MH)
+  */
+  sql_cmd := ''
+    MERGE INTO MHTEAM.MHA.BG_CASELOAD_BENEFITS tgt
+    USING (
+      SELECT
+        BENEFIT AS BENEFITS,
+        COUNT(*) AS VALUE,
+        TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD'''') AS "DATE"
+      FROM '' || snap_table || ''
+      WHERE BG <> ''''99'''' AND BENEFIT IS NOT NULL
+      GROUP BY BENEFIT
+
+      UNION ALL
+
+      SELECT
+        ''''Total'''' AS BENEFITS,
+        COUNT(*) AS VALUE,
+        TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD'''') AS "DATE"
+      FROM '' || snap_table || ''
+      WHERE BG <> ''''99''''
+
+      UNION ALL
+
+      /* >>> ONLY NEW ADDITION <<< */
+      SELECT
+        ''''Total MH'''' AS BENEFITS,
+        COUNT(*) AS VALUE,
+        TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD'''') AS "DATE"
+      FROM '' || snap_table || ''
+      WHERE BG <> ''''99''''
+        AND BENEFIT IS NOT NULL
+        AND BENEFIT <> ''''Non-MH''''
+    ) src
+    ON  tgt.BENEFITS = src.BENEFITS
+    AND tgt."DATE"   = src."DATE"
+    WHEN MATCHED THEN UPDATE SET tgt.VALUE = src.VALUE
+    WHEN NOT MATCHED THEN INSERT (BENEFITS, VALUE, "DATE")
+      VALUES (src.BENEFITS, src.VALUE, src."DATE")
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  /* 4) Calc metrics for THIS snap date only */
+  sql_cmd := ''
+    CREATE OR REPLACE TEMP TABLE calc_benefit_updates AS
+    WITH curr AS (
+      SELECT BENEFITS, "DATE", VALUE
+      FROM MHTEAM.MHA.BG_CASELOAD_BENEFITS
+      WHERE "DATE" = TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD'''')
+    ),
+    prev_week AS (
+      SELECT BENEFITS, VALUE
+      FROM MHTEAM.MHA.BG_CASELOAD_BENEFITS
+      WHERE "DATE" = DATEADD(DAY,-7,TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD''''))
+    ),
+    baseline AS (
+      SELECT BENEFITS, VALUE
+      FROM MHTEAM.MHA.BG_CASELOAD_BENEFITS
+      WHERE "DATE" = DATEADD(DAY,-364,TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD''''))
+    )
+    SELECT
+      c.BENEFITS,
+      c."DATE",
+      (c.VALUE - pw.VALUE) AS LAST_WEEK_DIFF,
+      (c.VALUE - b.VALUE)  AS PERIOD_DIFF,
+      CASE WHEN pw.VALUE IS NOT NULL AND pw.VALUE <> 0
+           THEN ROUND((c.VALUE - pw.VALUE) / pw.VALUE * 100, 2) ELSE NULL END AS LAST_WEEK_PCT,
+      CASE WHEN b.VALUE IS NOT NULL AND b.VALUE <> 0
+           THEN ROUND((c.VALUE - b.VALUE) / b.VALUE * 100, 2) ELSE NULL END AS PERIOD_PCT
+    FROM curr c
+    LEFT JOIN prev_week pw ON c.BENEFITS = pw.BENEFITS
+    LEFT JOIN baseline  b  ON c.BENEFITS = b.BENEFITS
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  /* 5) Update metrics */
+  sql_cmd := ''
+    UPDATE MHTEAM.MHA.BG_CASELOAD_BENEFITS tgt
+    SET
+      LAST_WEEK_DIFF = c.LAST_WEEK_DIFF,
+      PERIOD_DIFF    = c.PERIOD_DIFF,
+      LAST_WEEK_PCT  = c.LAST_WEEK_PCT,
+      PERIOD_PCT     = c.PERIOD_PCT
+    FROM calc_benefit_updates c
+    WHERE tgt.BENEFITS = c.BENEFITS
+      AND tgt."DATE"   = c."DATE"
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  RETURN ''OK: BENEFITS updated for '' || TO_CHAR(snap_date_raw,''YYYY-MM-DD'') || '' using '' || snap_table;
+END;
+';

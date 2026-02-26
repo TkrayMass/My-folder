@@ -1,0 +1,68 @@
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.BUDGET_WEEKLY_ADDS_PLANTYPE_L()
+RETURNS VARCHAR
+LANGUAGE JAVASCRIPT
+EXECUTE AS OWNER
+AS '
+try {
+  // --- 0) Get most recent Saturday + prior Saturday in Snowflake (avoids UTC issues) ---
+  const rs = snowflake.execute({
+    sqlText: `
+      SELECT
+        DATEADD(DAY, -MOD(DAYOFWEEKISO(CURRENT_DATE()) - 6 + 7, 7), CURRENT_DATE())        AS NEW_SAT,
+        DATEADD(DAY, -7, DATEADD(DAY, -MOD(DAYOFWEEKISO(CURRENT_DATE()) - 6 + 7, 7), CURRENT_DATE())) AS OLD_SAT
+    `
+  });
+  rs.next();
+  const newSat = rs.getColumnValue(1); // JS Date
+  const oldSat = rs.getColumnValue(2); // JS Date
+
+  function yyyymmdd(d) {
+    const yyyy = d.getFullYear();
+    const mm = (''0'' + (d.getMonth() + 1)).slice(-2);
+    const dd = (''0'' + d.getDate()).slice(-2);
+    return `${yyyy}${mm}${dd}`;
+  }
+
+  const new_snap_date_str = yyyymmdd(newSat);
+  const old_snap_date_str = yyyymmdd(oldSat);
+
+  const new_snap_table = `MHTEAM.MHA.BG_SNAP_${new_snap_date_str}`;
+  const old_snap_table = `MHTEAM.MHA.BG_SNAP_${old_snap_date_str}`;
+
+  // --- 1) MERGE adds by plantype (rerun-safe, no duplicates) ---
+  const sqlMerge = `
+    MERGE INTO MHTEAM.MHA.BG_ADDS_PLANTYPE tgt
+    USING (
+      SELECT
+        CASE WHEN GROUPING(n.PLANTYPE) = 1 THEN ''Total'' ELSE n.PLANTYPE END AS PLANTYPE,
+        COUNT(*) AS VALUE,
+        TO_DATE(''${new_snap_date_str}'',''YYYYMMDD'') AS "DATE"
+      FROM (
+        SELECT ID_MEDICAID, PLANTYPE
+        FROM ${new_snap_table}
+        WHERE BG <> ''99'' AND PLANTYPE IS NOT NULL
+      ) n
+      LEFT JOIN (
+        SELECT DISTINCT ID_MEDICAID
+        FROM ${old_snap_table}
+        WHERE BG <> ''99''
+      ) o
+        ON n.ID_MEDICAID = o.ID_MEDICAID
+      WHERE o.ID_MEDICAID IS NULL
+      GROUP BY ROLLUP(n.PLANTYPE)
+    ) src
+    ON  tgt."DATE"   = src."DATE"
+    AND tgt.PLANTYPE = src.PLANTYPE
+    WHEN MATCHED THEN UPDATE SET tgt.VALUE = src.VALUE
+    WHEN NOT MATCHED THEN INSERT (PLANTYPE, VALUE, "DATE")
+      VALUES (src.PLANTYPE, src.VALUE, src."DATE")
+  `;
+
+  snowflake.execute({ sqlText: sqlMerge });
+
+  return `Adds plantype refreshed for week ending ${new_snap_date_str} (compare to ${old_snap_date_str})`;
+
+} catch (err) {
+  return ''Error: '' + err.message;
+}
+';

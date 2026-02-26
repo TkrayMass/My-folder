@@ -1,0 +1,85 @@
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.BUDGET_WEEKLY_ADDS_DEMOGRAPHIC_T1()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS OWNER
+AS '
+DECLARE
+  new_snap_date_raw DATE;
+  old_snap_date_raw DATE;
+
+  new_snap_date_str STRING;
+  old_snap_date_str STRING;
+
+  new_snap_table    STRING;
+  old_snap_table    STRING;
+
+  sql_cmd           STRING;
+BEGIN
+  /* Most recent Saturday + prior Saturday */
+  new_snap_date_raw :=
+    DATEADD(DAY, -MOD(DAYOFWEEKISO(CURRENT_DATE()) - 6 + 7, 7), CURRENT_DATE());
+
+  old_snap_date_raw := DATEADD(DAY, -7, new_snap_date_raw);
+
+  new_snap_date_str := TO_CHAR(new_snap_date_raw, ''YYYYMMDD'');
+  old_snap_date_str := TO_CHAR(old_snap_date_raw, ''YYYYMMDD'');
+
+  new_snap_table := ''MHTEAM.MHA.BG_SNAP_'' || new_snap_date_str;
+  old_snap_table := ''MHTEAM.MHA.BG_SNAP_'' || old_snap_date_str;
+
+  /* Overwrite-safe: MERGE week’s adds (+ Total MH) */
+  sql_cmd := ''
+    MERGE INTO MHTEAM.MHA.BG_ADDS_DEMOGRAPHIC tgt
+    USING (
+      SELECT
+        CASE WHEN GROUPING(n.DEMOGRAPHICS)=1 THEN ''''Total'''' ELSE n.DEMOGRAPHICS END AS DEMOGRAPHIC,
+        COUNT(*) AS VALUE,
+        TO_DATE('''''' || new_snap_date_str || '''''',''''YYYYMMDD'''') AS "DATE"
+      FROM (
+        SELECT id_medicaid, DEMOGRAPHICS
+        FROM IDENTIFIER('''''' || new_snap_table || '''''')
+        WHERE bg IS NOT NULL AND bg <> ''''99''''
+      ) n
+      LEFT JOIN (
+        SELECT DISTINCT id_medicaid
+        FROM IDENTIFIER('''''' || old_snap_table || '''''')
+        WHERE bg IS NOT NULL AND bg <> ''''99''''
+      ) o
+        ON n.id_medicaid = o.id_medicaid
+      WHERE o.id_medicaid IS NULL
+        AND n.DEMOGRAPHICS IS NOT NULL
+      GROUP BY ROLLUP(n.DEMOGRAPHICS)
+
+      UNION ALL
+
+      /* >>> ONLY NEW ADDITION <<< */
+      SELECT
+        ''''Total MH'''' AS DEMOGRAPHIC,
+        COUNT(*) AS VALUE,
+        TO_DATE('''''' || new_snap_date_str || '''''',''''YYYYMMDD'''') AS "DATE"
+      FROM (
+        SELECT id_medicaid, DEMOGRAPHICS
+        FROM IDENTIFIER('''''' || new_snap_table || '''''')
+        WHERE bg IS NOT NULL AND bg <> ''''99''''
+          AND DEMOGRAPHICS IS NOT NULL
+          AND DEMOGRAPHICS <> ''''Non-MH''''
+      ) n
+      LEFT JOIN (
+        SELECT DISTINCT id_medicaid
+        FROM IDENTIFIER('''''' || old_snap_table || '''''')
+        WHERE bg IS NOT NULL AND bg <> ''''99''''
+      ) o
+        ON n.id_medicaid = o.id_medicaid
+      WHERE o.id_medicaid IS NULL
+    ) src
+    ON  tgt."DATE"      = src."DATE"
+    AND tgt.DEMOGRAPHIC = src.DEMOGRAPHIC
+    WHEN MATCHED THEN UPDATE SET tgt.VALUE = src.VALUE
+    WHEN NOT MATCHED THEN INSERT (DEMOGRAPHIC, VALUE, "DATE")
+      VALUES (src.DEMOGRAPHIC, src.VALUE, src."DATE")
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  RETURN ''BG_ADDS_DEMOGRAPHIC refreshed for week ending '' || TO_CHAR(new_snap_date_raw,''YYYY-MM-DD'');
+END;
+';

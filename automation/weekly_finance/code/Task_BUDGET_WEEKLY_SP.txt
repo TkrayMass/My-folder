@@ -1,0 +1,4 @@
+create or replace task MHTEAM.MHA.BUDGET_WEEKLY_SP
+	warehouse=MHA_WH
+	schedule='USING CRON 0 6 * * 4 UTC'
+	as CALL MHTEAM.MHA.BUDGET_WEEKLY_MASTER_SP();

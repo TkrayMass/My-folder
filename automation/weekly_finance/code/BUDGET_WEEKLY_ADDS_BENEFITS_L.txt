@@ -1,0 +1,63 @@
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.BUDGET_WEEKLY_ADDS_BENEFITS_L()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS OWNER
+AS '
+DECLARE
+  new_snap_date_raw DATE;
+  old_snap_date_raw DATE;
+
+  new_snap_date_str STRING;
+  old_snap_date_str STRING;
+
+  new_snap_table    STRING;
+  old_snap_table    STRING;
+
+  sql_cmd           STRING;
+BEGIN
+  /* Most recent Saturday + prior Saturday */
+  new_snap_date_raw :=
+    DATEADD(DAY, -MOD(DAYOFWEEKISO(CURRENT_DATE()) - 6 + 7, 7), CURRENT_DATE());
+
+  old_snap_date_raw := DATEADD(DAY, -7, new_snap_date_raw);
+
+  new_snap_date_str := TO_CHAR(new_snap_date_raw, ''YYYYMMDD'');
+  old_snap_date_str := TO_CHAR(old_snap_date_raw, ''YYYYMMDD'');
+
+  new_snap_table := ''MHTEAM.MHA.BG_SNAP_'' || new_snap_date_str;
+  old_snap_table := ''MHTEAM.MHA.BG_SNAP_'' || old_snap_date_str;
+
+  /* MERGE adds by benefit (rerun-safe) */
+  sql_cmd := ''
+    MERGE INTO MHTEAM.MHA.BG_ADDS_BENEFITS tgt
+    USING (
+      SELECT
+        CASE WHEN GROUPING(n.BENEFIT)=1 THEN ''''Total'''' ELSE n.BENEFIT END AS BENEFIT,
+        COUNT(*) AS VALUE,
+        TO_DATE('''''' || new_snap_date_str || '''''',''''YYYYMMDD'''') AS "DATE"
+      FROM (
+        SELECT ID_MEDICAID, BENEFIT
+        FROM IDENTIFIER('''''' || new_snap_table || '''''')
+        WHERE BG <> ''''99''''
+      ) n
+      LEFT JOIN (
+        SELECT DISTINCT ID_MEDICAID
+        FROM IDENTIFIER('''''' || old_snap_table || '''''')
+        WHERE BG <> ''''99''''
+      ) o
+        ON n.ID_MEDICAID = o.ID_MEDICAID
+      WHERE o.ID_MEDICAID IS NULL
+        AND n.BENEFIT IS NOT NULL
+      GROUP BY ROLLUP(n.BENEFIT)
+    ) src
+    ON  tgt."DATE"  = src."DATE"
+    AND tgt.BENEFIT = src.BENEFIT
+    WHEN MATCHED THEN UPDATE SET tgt.VALUE = src.VALUE
+    WHEN NOT MATCHED THEN INSERT (BENEFIT, VALUE, "DATE")
+      VALUES (src.BENEFIT, src.VALUE, src."DATE")
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  RETURN ''OK: ADDS_BENEFITS updated for '' || TO_CHAR(new_snap_date_raw,''YYYY-MM-DD'');
+END;
+';

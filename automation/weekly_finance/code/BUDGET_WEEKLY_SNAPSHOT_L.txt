@@ -1,0 +1,50 @@
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.BUDGET_WEEKLY_SNAPSHOT_L()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS OWNER
+AS '
+DECLARE
+  snap_date_raw DATE;
+  snap_date_str STRING;
+  sql_stmt      STRING;
+BEGIN
+  /*------------------------------------------------------------
+    Most recent Saturday (robust)
+  ------------------------------------------------------------*/
+  snap_date_raw :=
+    DATEADD(
+      DAY,
+      -MOD(DAYOFWEEKISO(CURRENT_DATE()) - 6 + 7, 7),
+      CURRENT_DATE()
+    );
+
+  snap_date_str := TO_CHAR(snap_date_raw, ''YYYYMMDD'');
+
+  /*------------------------------------------------------------
+    Create weekly snapshot (fully qualified)
+  ------------------------------------------------------------*/
+  sql_stmt := ''
+    CREATE OR REPLACE TABLE MHTEAM.MHA.BG_SNAP_'' || snap_date_str || '' AS
+    SELECT
+      se.id_medicaid,
+      LPAD(se.cde_budget_group, 2, ''''0'''') AS bg,
+      se.cde_aid_category,
+      se.cde_pgm_health,
+      bg.*
+    FROM MHDWPROD.NW.NW_STATE_ELIGIBILITY_HIST se
+    LEFT JOIN MHTEAM.MHA.BUDGET_XWALK_MEMBER_GROUPING bg
+      ON LPAD(se.cde_budget_group, 2, ''''0'''') = bg.cde_budget_group
+    WHERE
+      TO_DATE('''''' || TO_CHAR(snap_date_raw, ''YYYY-MM-DD'') || '''''') 
+        BETWEEN se.valid_from_dt_tm AND se.valid_thru_dt_tm
+      AND se.ind_active = ''''Y''''
+      AND TO_DATE('''''' || TO_CHAR(snap_date_raw, ''YYYY-MM-DD'') || '''''') 
+        BETWEEN se.dte_effective AND se.dte_end
+  '';
+
+  EXECUTE IMMEDIATE sql_stmt;
+
+  RETURN ''Snapshot created: MHTEAM.MHA.BG_SNAP_'' || snap_date_str ||
+         '' for week ending '' || TO_CHAR(snap_date_raw, ''YYYY-MM-DD'');
+END;
+';

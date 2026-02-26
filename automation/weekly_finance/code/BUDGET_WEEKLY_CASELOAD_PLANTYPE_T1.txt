@@ -1,0 +1,105 @@
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.BUDGET_WEEKLY_CASELOAD_PLANTYPE_T1()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS OWNER
+AS '
+DECLARE
+  latest_week_date DATE;
+  snap_date_str    STRING;
+  snap_table       STRING;
+  sql_cmd          STRING;
+BEGIN
+  /* Most recent Saturday */
+  latest_week_date :=
+    DATEADD(DAY, -MOD(DAYOFWEEKISO(CURRENT_DATE()) - 6 + 7, 7), CURRENT_DATE());
+
+  snap_date_str := TO_CHAR(latest_week_date, ''YYYYMMDD'');
+  snap_table    := ''MHTEAM.MHA.BG_SNAP_'' || snap_date_str;
+
+  /* 1) MERGE counts (no new rows if date exists)
+        + Add synthetic row: Total MH (Total excluding Non-MH)
+  */
+  sql_cmd := ''
+    MERGE INTO MHTEAM.MHA.BG_CASELOAD_PLANTYPE tgt
+    USING (
+      /* Existing PlanType rows + Total */
+      SELECT
+        CASE WHEN GROUPING(PLANTYPE)=1 THEN ''''Total'''' ELSE PLANTYPE END AS PLANTYPE,
+        COUNT(*) AS VALUE,
+        TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD'''') AS "DATE"
+      FROM IDENTIFIER('''''' || snap_table || '''''')
+      WHERE BG <> ''''99'''' AND PLANTYPE IS NOT NULL
+      GROUP BY ROLLUP(PLANTYPE)
+
+      UNION ALL
+
+      /* >>> ONLY NEW ADDITION <<< */
+      /* Synthetic row: Total MH = Total excluding PLANTYPE = Non-MH */
+      SELECT
+        ''''Total MH'''' AS PLANTYPE,
+        COUNT(*) AS VALUE,
+        TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD'''') AS "DATE"
+      FROM IDENTIFIER('''''' || snap_table || '''''')
+      WHERE BG <> ''''99''''
+        AND PLANTYPE IS NOT NULL
+        AND PLANTYPE <> ''''Non-MH''''
+    ) src
+    ON  tgt."DATE" = src."DATE"
+    AND tgt.PLANTYPE = src.PLANTYPE
+    WHEN MATCHED THEN UPDATE SET tgt.VALUE = src.VALUE
+    WHEN NOT MATCHED THEN INSERT (PLANTYPE, VALUE, "DATE")
+      VALUES (src.PLANTYPE, src.VALUE, src."DATE")
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  /* 2) Diffs only for this week (52-week period = -364 days) */
+  sql_cmd := ''
+    CREATE OR REPLACE TEMPORARY TABLE CALC_UPDATES AS
+    WITH curr AS (
+      SELECT PLANTYPE, "DATE", VALUE
+      FROM MHTEAM.MHA.BG_CASELOAD_PLANTYPE
+      WHERE "DATE" = TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD'''')
+    ),
+    prev_week AS (
+      SELECT PLANTYPE, VALUE
+      FROM MHTEAM.MHA.BG_CASELOAD_PLANTYPE
+      WHERE "DATE" = DATEADD(DAY,-7,TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD''''))
+    ),
+    baseline AS (
+      SELECT PLANTYPE, VALUE
+      FROM MHTEAM.MHA.BG_CASELOAD_PLANTYPE
+      WHERE "DATE" = DATEADD(DAY,-364,TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD''''))
+    )
+    SELECT
+      c.PLANTYPE,
+      c."DATE",
+      (c.VALUE - pw.VALUE) AS LAST_WEEK_DIFF,
+      (c.VALUE - b.VALUE)  AS PERIOD_DIFF,
+      CASE WHEN pw.VALUE IS NOT NULL AND pw.VALUE <> 0
+           THEN ROUND((c.VALUE - pw.VALUE)/pw.VALUE*100,2) ELSE NULL END AS LAST_WEEK_PCT,
+      CASE WHEN b.VALUE IS NOT NULL AND b.VALUE <> 0
+           THEN ROUND((c.VALUE - b.VALUE)/b.VALUE*100,2) ELSE NULL END AS PERIOD_PCT
+    FROM curr c
+    LEFT JOIN prev_week pw ON c.PLANTYPE = pw.PLANTYPE
+    LEFT JOIN baseline  b  ON c.PLANTYPE = b.PLANTYPE
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  /* 3) Update only this week’s rows */
+  sql_cmd := ''
+    UPDATE MHTEAM.MHA.BG_CASELOAD_PLANTYPE t
+    SET
+      LAST_WEEK_DIFF = u.LAST_WEEK_DIFF,
+      PERIOD_DIFF    = u.PERIOD_DIFF,
+      LAST_WEEK_PCT  = u.LAST_WEEK_PCT,
+      PERIOD_PCT     = u.PERIOD_PCT
+    FROM CALC_UPDATES u
+    WHERE t.PLANTYPE = u.PLANTYPE
+      AND t."DATE"   = u."DATE"
+      AND t."DATE"   = TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD'''')
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  RETURN ''OK: PLANTYPE updated for '' || TO_CHAR(latest_week_date,''YYYY-MM-DD'');
+END;
+';

@@ -1,0 +1,56 @@
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.BUDGET_WEEKLY_MASTER_SP()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS OWNER
+AS '
+DECLARE
+  out_msg STRING DEFAULT '''';
+  one_msg STRING;
+BEGIN
+  /*==============================
+    MAIN PIPELINE
+  ==============================*/
+
+  CALL MHTEAM.MHA.BUDGET_WEEKLY_SNAPSHOT_L();
+  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+  out_msg := out_msg || one_msg || ''\\n'';
+
+  CALL MHTEAM.MHA.BUDGET_WEEKLY_CASELOAD_DEMOGRAPHIC_t1();
+  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+  out_msg := out_msg || one_msg || ''\\n'';
+
+  CALL MHTEAM.MHA.BUDGET_WEEKLY_CASELOAD_PLANTYPE_t1();
+  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+  out_msg := out_msg || one_msg || ''\\n'';
+
+  CALL MHTEAM.MHA.BUDGET_WEEKLY_CASELOAD_BENEFIT_t1();
+  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+  out_msg := out_msg || one_msg || ''\\n'';
+
+  CALL MHTEAM.MHA.BUDGET_WEEKLY_ADDS_DEMOGRAPHIC_t1();
+  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+  out_msg := out_msg || one_msg || ''\\n'';
+
+  CALL MHTEAM.MHA.BUDGET_WEEKLY_ADDS_PLANTYPE_L();
+  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+  out_msg := out_msg || one_msg || ''\\n'';
+
+  CALL MHTEAM.MHA.BUDGET_WEEKLY_ADDS_BENEFITS_L();
+  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+  out_msg := out_msg || one_msg || ''\\n'';
+
+  CALL MHTEAM.MHA.BUDGET_WEEKLY_TERMS_ALL_L();
+  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+  out_msg := out_msg || one_msg || ''\\n'';
+
+  CALL MHTEAM.MHA.BUDGET_WEEKLY_REFRESH_CHANGES2_t1();
+  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+  out_msg := out_msg || one_msg || ''\\n'';
+
+  CALL MHTEAM.MHA.BUDGET_WEEKLY_REFRESH_CASELOAD_L();
+  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+  out_msg := out_msg || one_msg || ''\\n'';
+
+
+END;
+';

@@ -1,0 +1,102 @@
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.BUDGET_WEEKLY_CASELOAD_DEMOGRAPHIC_T1()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS OWNER
+AS '
+DECLARE
+  latest_week_date DATE;
+  snap_date_str    STRING;
+  snap_table       STRING;
+  sql_cmd          STRING;
+BEGIN
+  /* Most recent Saturday */
+  latest_week_date :=
+    DATEADD(DAY, -MOD(DAYOFWEEKISO(CURRENT_DATE()) - 6 + 7, 7), CURRENT_DATE());
+
+  snap_date_str := TO_CHAR(latest_week_date, ''YYYYMMDD'');
+  snap_table    := ''MHTEAM.MHA.BG_SNAP_'' || snap_date_str;
+
+  /* 1) MERGE (so re-run will NOT insert new rows for same date)
+        + Add synthetic row: Total MH (Total excluding Non-MH)
+  */
+  sql_cmd := ''
+    MERGE INTO MHTEAM.MHA.BG_CASELOAD_DEMOGRAPHIC tgt
+    USING (
+      /* Existing demographic rows + Total */
+      SELECT
+        CASE WHEN GROUPING(DEMOGRAPHICS)=1 THEN ''''Total'''' ELSE DEMOGRAPHICS END AS DEMOGRAPHIC,
+        COUNT(*) AS VALUE,
+        TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD'''') AS "DATE"
+      FROM IDENTIFIER('''''' || snap_table || '''''')
+      WHERE BG IS NOT NULL AND BG <> ''''99''''
+      GROUP BY ROLLUP(DEMOGRAPHICS)
+
+      UNION ALL
+
+      /* New synthetic row: Total MH = Total excluding Non-MH */
+      SELECT
+        ''''Total MH'''' AS DEMOGRAPHIC,
+        COUNT(*) AS VALUE,
+        TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD'''') AS "DATE"
+      FROM IDENTIFIER('''''' || snap_table || '''''')
+      WHERE BG IS NOT NULL AND BG <> ''''99''''
+        AND DEMOGRAPHICS <> ''''Non-MH''''
+    ) src
+    ON  tgt."DATE" = src."DATE"
+    AND tgt.DEMOGRAPHIC = src.DEMOGRAPHIC
+    WHEN MATCHED THEN UPDATE SET tgt.VALUE = src.VALUE
+    WHEN NOT MATCHED THEN INSERT (DEMOGRAPHIC, VALUE, "DATE")
+      VALUES (src.DEMOGRAPHIC, src.VALUE, src."DATE")
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  /* 2) Update diffs only for this date (no “latest per demo” bug) */
+  sql_cmd := ''
+    CREATE OR REPLACE TEMPORARY TABLE CALC_UPDATES AS
+    WITH curr AS (
+      SELECT DEMOGRAPHIC, "DATE", VALUE
+      FROM MHTEAM.MHA.BG_CASELOAD_DEMOGRAPHIC
+      WHERE "DATE" = TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD'''')
+    ),
+    prev_week AS (
+      SELECT DEMOGRAPHIC, VALUE
+      FROM MHTEAM.MHA.BG_CASELOAD_DEMOGRAPHIC
+      WHERE "DATE" = DATEADD(DAY,-7,TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD''''))
+    ),
+    baseline AS (
+      SELECT DEMOGRAPHIC, VALUE
+      FROM MHTEAM.MHA.BG_CASELOAD_DEMOGRAPHIC
+      WHERE "DATE" = DATEADD(DAY,-364,TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD''''))
+    )
+    SELECT
+      c.DEMOGRAPHIC,
+      c."DATE",
+      (c.VALUE - pw.VALUE) AS LAST_WEEK_DIFF,
+      (c.VALUE - b.VALUE)  AS PERIOD_DIFF,
+      CASE WHEN pw.VALUE IS NOT NULL AND pw.VALUE <> 0
+           THEN ROUND((c.VALUE - pw.VALUE)/pw.VALUE*100,2) ELSE NULL END AS LAST_WEEK_PCT,
+      CASE WHEN b.VALUE IS NOT NULL AND b.VALUE <> 0
+           THEN ROUND((c.VALUE - b.VALUE)/b.VALUE*100,2) ELSE NULL END AS PERIOD_PCT
+    FROM curr c
+    LEFT JOIN prev_week pw ON c.DEMOGRAPHIC = pw.DEMOGRAPHIC
+    LEFT JOIN baseline  b  ON c.DEMOGRAPHIC = b.DEMOGRAPHIC
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  sql_cmd := ''
+    UPDATE MHTEAM.MHA.BG_CASELOAD_DEMOGRAPHIC t
+    SET
+      LAST_WEEK_DIFF = u.LAST_WEEK_DIFF,
+      PERIOD_DIFF    = u.PERIOD_DIFF,
+      LAST_WEEK_PCT  = u.LAST_WEEK_PCT,
+      PERIOD_PCT     = u.PERIOD_PCT
+    FROM CALC_UPDATES u
+    WHERE t.DEMOGRAPHIC = u.DEMOGRAPHIC
+      AND t."DATE" = u."DATE"
+      AND t."DATE" = TO_DATE('''''' || snap_date_str || '''''',''''YYYYMMDD'''')
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  RETURN ''OK: updated for week ending '' || TO_CHAR(latest_week_date,''YYYY-MM-DD'');
+END;
+';

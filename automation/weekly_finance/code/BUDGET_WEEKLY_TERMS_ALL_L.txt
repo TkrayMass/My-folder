@@ -1,0 +1,133 @@
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.BUDGET_WEEKLY_TERMS_ALL_L()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS OWNER
+AS '
+DECLARE
+  recent_date_raw   DATE;
+  previous_date_raw DATE;
+
+  recent_date_str   STRING;
+  previous_date_str STRING;
+
+  tbl_recent        STRING;
+  tbl_previous      STRING;
+
+  sql_cmd           STRING;
+BEGIN
+  /*------------------------------------------------------------
+    0) Most recent Saturday + prior Saturday (robust)
+  ------------------------------------------------------------*/
+  recent_date_raw :=
+    DATEADD(DAY, -MOD(DAYOFWEEKISO(CURRENT_DATE()) - 6 + 7, 7), CURRENT_DATE());
+
+  previous_date_raw := DATEADD(DAY, -7, recent_date_raw);
+
+  recent_date_str   := TO_CHAR(recent_date_raw,   ''YYYYMMDD'');
+  previous_date_str := TO_CHAR(previous_date_raw, ''YYYYMMDD'');
+
+  tbl_recent   := ''MHTEAM.MHA.BG_SNAP_'' || recent_date_str;
+  tbl_previous := ''MHTEAM.MHA.BG_SNAP_'' || previous_date_str;
+
+  /*------------------------------------------------------------
+    1) TERMS by DEMOGRAPHIC (previous but not recent) — MERGE rerun-safe
+  ------------------------------------------------------------*/
+  sql_cmd := ''
+    MERGE INTO MHTEAM.MHA.BG_TERMS_DEMOGRAPHIC tgt
+    USING (
+      SELECT
+        CASE WHEN GROUPING(o.DEMOGRAPHICS)=1 THEN ''''Total'''' ELSE o.DEMOGRAPHICS END AS DEMOGRAPHIC,
+        COUNT(*) AS VALUE,
+        TO_DATE('''''' || recent_date_str || '''''',''''YYYYMMDD'''') AS "DATE"
+      FROM (
+        SELECT ID_MEDICAID, DEMOGRAPHICS
+        FROM IDENTIFIER('''''' || tbl_previous || '''''')
+        WHERE BG <> ''''99''''
+      ) o
+      LEFT JOIN (
+        SELECT DISTINCT ID_MEDICAID
+        FROM IDENTIFIER('''''' || tbl_recent || '''''')
+        WHERE BG <> ''''99''''
+      ) n
+        ON o.ID_MEDICAID = n.ID_MEDICAID
+      WHERE n.ID_MEDICAID IS NULL
+        AND o.DEMOGRAPHICS IS NOT NULL
+      GROUP BY ROLLUP(o.DEMOGRAPHICS)
+    ) src
+    ON  tgt."DATE"      = src."DATE"
+    AND tgt.DEMOGRAPHIC = src.DEMOGRAPHIC
+    WHEN MATCHED THEN UPDATE SET tgt.VALUE = src.VALUE
+    WHEN NOT MATCHED THEN INSERT (DEMOGRAPHIC, VALUE, "DATE")
+      VALUES (src.DEMOGRAPHIC, src.VALUE, src."DATE")
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  /*------------------------------------------------------------
+    2) TERMS by PLANTYPE — MERGE rerun-safe
+  ------------------------------------------------------------*/
+  sql_cmd := ''
+    MERGE INTO MHTEAM.MHA.BG_TERMS_PLANTYPE tgt
+    USING (
+      SELECT
+        CASE WHEN GROUPING(o.PLANTYPE)=1 THEN ''''Total'''' ELSE o.PLANTYPE END AS PLANTYPE,
+        COUNT(*) AS VALUE,
+        TO_DATE('''''' || recent_date_str || '''''',''''YYYYMMDD'''') AS "DATE"
+      FROM (
+        SELECT ID_MEDICAID, PLANTYPE
+        FROM IDENTIFIER('''''' || tbl_previous || '''''')
+        WHERE BG <> ''''99''''
+      ) o
+      LEFT JOIN (
+        SELECT DISTINCT ID_MEDICAID
+        FROM IDENTIFIER('''''' || tbl_recent || '''''')
+        WHERE BG <> ''''99''''
+      ) n
+        ON o.ID_MEDICAID = n.ID_MEDICAID
+      WHERE n.ID_MEDICAID IS NULL
+        AND o.PLANTYPE IS NOT NULL
+      GROUP BY ROLLUP(o.PLANTYPE)
+    ) src
+    ON  tgt."DATE"   = src."DATE"
+    AND tgt.PLANTYPE = src.PLANTYPE
+    WHEN MATCHED THEN UPDATE SET tgt.VALUE = src.VALUE
+    WHEN NOT MATCHED THEN INSERT (PLANTYPE, VALUE, "DATE")
+      VALUES (src.PLANTYPE, src.VALUE, src."DATE")
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  /*------------------------------------------------------------
+    3) TERMS by BENEFIT — MERGE rerun-safe
+  ------------------------------------------------------------*/
+  sql_cmd := ''
+    MERGE INTO MHTEAM.MHA.BG_TERMS_BENEFITS tgt
+    USING (
+      SELECT
+        CASE WHEN GROUPING(o.BENEFIT)=1 THEN ''''Total'''' ELSE o.BENEFIT END AS BENEFIT,
+        COUNT(*) AS VALUE,
+        TO_DATE('''''' || recent_date_str || '''''',''''YYYYMMDD'''') AS "DATE"
+      FROM (
+        SELECT ID_MEDICAID, BENEFIT
+        FROM IDENTIFIER('''''' || tbl_previous || '''''')
+        WHERE BG <> ''''99''''
+      ) o
+      LEFT JOIN (
+        SELECT DISTINCT ID_MEDICAID
+        FROM IDENTIFIER('''''' || tbl_recent || '''''')
+        WHERE BG <> ''''99''''
+      ) n
+        ON o.ID_MEDICAID = n.ID_MEDICAID
+      WHERE n.ID_MEDICAID IS NULL
+        AND o.BENEFIT IS NOT NULL
+      GROUP BY ROLLUP(o.BENEFIT)
+    ) src
+    ON  tgt."DATE"   = src."DATE"
+    AND tgt.BENEFIT  = src.BENEFIT
+    WHEN MATCHED THEN UPDATE SET tgt.VALUE = src.VALUE
+    WHEN NOT MATCHED THEN INSERT (BENEFIT, VALUE, "DATE")
+      VALUES (src.BENEFIT, src.VALUE, src."DATE")
+  '';
+  EXECUTE IMMEDIATE sql_cmd;
+
+  RETURN ''OK: TERMS computed (prev='' || previous_date_str || '', curr='' || recent_date_str || '')'';
+END;
+';

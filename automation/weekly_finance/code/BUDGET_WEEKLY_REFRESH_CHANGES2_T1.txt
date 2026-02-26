@@ -1,0 +1,74 @@
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.BUDGET_WEEKLY_REFRESH_CHANGES2_T1()
+RETURNS VARCHAR
+LANGUAGE JAVASCRIPT
+EXECUTE AS OWNER
+AS '
+try {
+  // 1) Truncate
+  snowflake.execute({ sqlText: `TRUNCATE TABLE MHTEAM.MHA.BG_CHANGES;` });
+
+  // 2) Insert Additions + Terminations (coalesce VALUE)
+  const insert_sql = `
+    INSERT INTO MHTEAM.MHA.BG_CHANGES (CATEGORY_NAME, VALUE, "DATE", CHANGE_TYPE, SOURCE_TYPE)
+    SELECT CATEGORY_NAME, VALUE, "DATE", CHANGE_TYPE, SOURCE_TYPE
+    FROM (
+      /* Additions */
+      SELECT BENEFIT      AS CATEGORY_NAME, COALESCE(VALUE,0) AS VALUE, "DATE", ''Addition''     AS CHANGE_TYPE, ''Benefits''    AS SOURCE_TYPE
+      FROM MHTEAM.MHA.BG_ADDS_BENEFITS
+      UNION ALL
+      SELECT DEMOGRAPHIC  AS CATEGORY_NAME, COALESCE(VALUE,0) AS VALUE, "DATE", ''Addition''     AS CHANGE_TYPE, ''Demographic'' AS SOURCE_TYPE
+      FROM MHTEAM.MHA.BG_ADDS_DEMOGRAPHIC
+      UNION ALL
+      SELECT PLANTYPE     AS CATEGORY_NAME, COALESCE(VALUE,0) AS VALUE, "DATE", ''Addition''     AS CHANGE_TYPE, ''PlanType''    AS SOURCE_TYPE
+      FROM MHTEAM.MHA.BG_ADDS_PLANTYPE
+
+      UNION ALL
+
+      /* Terminations */
+      SELECT BENEFIT      AS CATEGORY_NAME, COALESCE(VALUE,0) AS VALUE, "DATE", ''Termination''  AS CHANGE_TYPE, ''Benefits''    AS SOURCE_TYPE
+      FROM MHTEAM.MHA.BG_TERMS_BENEFITS
+      UNION ALL
+      SELECT DEMOGRAPHIC  AS CATEGORY_NAME, COALESCE(VALUE,0) AS VALUE, "DATE", ''Termination''  AS CHANGE_TYPE, ''Demographic'' AS SOURCE_TYPE
+      FROM MHTEAM.MHA.BG_TERMS_DEMOGRAPHIC
+      UNION ALL
+      SELECT PLANTYPE     AS CATEGORY_NAME, COALESCE(VALUE,0) AS VALUE, "DATE", ''Termination''  AS CHANGE_TYPE, ''PlanType''    AS SOURCE_TYPE
+      FROM MHTEAM.MHA.BG_TERMS_PLANTYPE
+    )
+  `;
+  snowflake.execute({ sqlText: insert_sql });
+
+  // 3) Standardize SOURCE_TYPE labels
+  snowflake.execute({
+    sqlText: `
+      UPDATE MHTEAM.MHA.BG_CHANGES
+      SET SOURCE_TYPE = CASE
+        WHEN SOURCE_TYPE = ''PlanType''    THEN ''Plan Types''
+        WHEN SOURCE_TYPE = ''Demographic'' THEN ''Demographic Groups''
+        WHEN SOURCE_TYPE = ''Benefits''    THEN ''Benefits''
+        ELSE SOURCE_TYPE
+      END
+      WHERE SOURCE_TYPE IN (''PlanType'',''Demographic'',''Benefits'');
+    `
+  });
+
+  // 4) Add synthetic "Total MH" row (exclude Non-MH; avoid double-counting totals)
+  snowflake.execute({
+    sqlText: `
+      INSERT INTO MHTEAM.MHA.BG_CHANGES (CATEGORY_NAME, VALUE, "DATE", CHANGE_TYPE, SOURCE_TYPE)
+      SELECT
+        ''Total MH'' AS CATEGORY_NAME,
+        SUM(VALUE)   AS VALUE,
+        "DATE",
+        CHANGE_TYPE,
+        SOURCE_TYPE
+      FROM MHTEAM.MHA.BG_CHANGES
+      WHERE CATEGORY_NAME NOT IN (''Total'', ''Non-MH'', ''Total MH'')
+      GROUP BY "DATE", CHANGE_TYPE, SOURCE_TYPE;
+    `
+  });
+
+  return ''BG_CHANGES refreshed successfully (rebuild + COALESCE VALUE=0 + Total MH rows).'';
+} catch (err) {
+  return ''Error refreshing BG_CHANGES: '' + err.message;
+}
+';

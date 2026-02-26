@@ -1,0 +1,59 @@
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.BUDGET_WEEKLY_REFRESH_CASELOAD_L()
+RETURNS VARCHAR
+LANGUAGE JAVASCRIPT
+EXECUTE AS OWNER
+AS '
+try {
+  // 1) Truncate target
+  snowflake.execute({ sqlText: `TRUNCATE TABLE MHTEAM.MHA.BG_CASELOAD;` });
+
+  // 2) Insert Benefits
+  snowflake.execute({ sqlText: `
+    INSERT INTO MHTEAM.MHA.BG_CASELOAD (CATEGORY_NAME, VALUE, "DATE", SOURCE_TYPE)
+    SELECT
+      /* CHANGE THIS IF YOUR COLUMN IS BENEFIT (singular) */
+      BENEFITS AS CATEGORY_NAME,
+      VALUE,
+      "DATE",
+      ''Benefits'' AS SOURCE_TYPE
+    FROM MHTEAM.MHA.BG_CASELOAD_BENEFITS;
+  `});
+
+  // 3) Insert Demographics
+  snowflake.execute({ sqlText: `
+    INSERT INTO MHTEAM.MHA.BG_CASELOAD (CATEGORY_NAME, VALUE, "DATE", SOURCE_TYPE)
+    SELECT
+      DEMOGRAPHIC AS CATEGORY_NAME,
+      VALUE,
+      "DATE",
+      ''Demographic'' AS SOURCE_TYPE
+    FROM MHTEAM.MHA.BG_CASELOAD_DEMOGRAPHIC;
+  `});
+
+  // 4) Insert Plan Types
+  snowflake.execute({ sqlText: `
+    INSERT INTO MHTEAM.MHA.BG_CASELOAD (CATEGORY_NAME, VALUE, "DATE", SOURCE_TYPE)
+    SELECT
+      PLANTYPE AS CATEGORY_NAME,
+      VALUE,
+      "DATE",
+      ''PlanType'' AS SOURCE_TYPE
+    FROM MHTEAM.MHA.BG_CASELOAD_PLANTYPE;
+  `});
+
+  // 5) Friendly SOURCE_TYPE labels
+  snowflake.execute({ sqlText: `
+    UPDATE MHTEAM.MHA.BG_CASELOAD
+    SET SOURCE_TYPE = CASE
+      WHEN SOURCE_TYPE = ''PlanType''    THEN ''Plan Types''
+      WHEN SOURCE_TYPE = ''Demographic'' THEN ''Demographic Groups''
+      ELSE SOURCE_TYPE
+    END
+    WHERE SOURCE_TYPE IN (''PlanType'',''Demographic'');
+  `});
+
+  return ''BG_CASELOAD refreshed successfully.'';
+} catch (err) {
+  return ''Error refreshing BG_CASELOAD: '' + err.message;
+}
+';
