@@ -1,0 +1,282 @@
+CALL MHTEAM.MHA.CASELOAD_MONTHLY_DB2();
+
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.CASELOAD_MONTHLY_DB2(
+  "START_MONTH" DATE DEFAULT '2006-07-01',
+  "END_MONTH"   DATE DEFAULT CURRENT_DATE()
+)
+RETURNS VARCHAR
+LANGUAGE JAVASCRIPT
+EXECUTE AS CALLER
+AS
+$$
+/*============================================================
+  CASELOAD_MONTHLY_DB2  (SAS-equivalent)
+
+  Matches SAS monthly logic:
+  - ASOFDT = 1st day of the month the job runs
+  - Computes member-days for full months only (through last day
+    of the prior month relative to ASOFDT)
+  - Validity window slice uses ASOFDT (not CURRENT_DATE)
+  - Uses DATE casts for stable comparisons/arithmetic
+  - Budget group handling matches SAS: NVL(cde_budget_group,'00')
+
+  Notes:
+  - END_MONTH default CURRENT_DATE() is OK: TRUE_END is capped
+    by prior-month-of-ASOFDT, so a run on Mar 2 still ends Feb 28.
+============================================================*/
+
+function ymdUTC(d) {
+  // Snowflake JS Date -> YYYY-MM-DD string in UTC (prevents timezone drift)
+  var y  = d.getUTCFullYear();
+  var m  = String(d.getUTCMonth() + 1).padStart(2,'0');
+  var da = String(d.getUTCDate()).padStart(2,'0');
+  return `${y}-${m}-${da}`;
+}
+
+var inserted = 0;
+
+//------------------------------------------------------------
+// 1) ASOFDT = first day of run month (SAS logic)
+//------------------------------------------------------------
+var asof_stmt = snowflake.execute({
+  sqlText: "SELECT DATE_TRUNC('MONTH', CURRENT_DATE())"
+});
+asof_stmt.next();
+var as_of_dt = asof_stmt.getColumnValue(1);   // JS Date
+var asof_str = ymdUTC(as_of_dt);
+
+//------------------------------------------------------------
+// 2) Normalize START_MONTH to first of its month (safe)
+//------------------------------------------------------------
+var start_stmt = snowflake.execute({
+  sqlText: "SELECT DATE_TRUNC('MONTH', TO_DATE(?,'YYYY-MM-DD'))",
+  binds: [ ymdUTC(START_MONTH) ]
+});
+start_stmt.next();
+var begm = start_stmt.getColumnValue(1);      // JS Date
+
+//------------------------------------------------------------
+// 3) TRUE_END = last day of prior month relative to ASOFDT,
+//    but also respect END_MONTH's month end.
+//------------------------------------------------------------
+var true_end_stmt = snowflake.execute({
+  sqlText: `
+    SELECT LEAST(
+             LAST_DAY(DATEADD(month, -1, TO_DATE(?,'YYYY-MM-DD'))),
+             LAST_DAY(TO_DATE(?,'YYYY-MM-DD'))
+           )
+  `,
+  binds: [ asof_str, ymdUTC(END_MONTH) ]
+});
+true_end_stmt.next();
+var true_end = true_end_stmt.getColumnValue(1);  // JS Date
+
+//------------------------------------------------------------
+// 4) Create working table (overwrite each run)
+//------------------------------------------------------------
+snowflake.execute({
+  sqlText: `
+    CREATE OR REPLACE TABLE MHTEAM.MHA.CASELOAD_MEMBER_DAYS_TEMP (
+      YR_MTH           NUMBER,
+      CDE_BUDGET_GROUP STRING,
+      MEM_DAYS         NUMBER
+    )
+  `
+});
+
+//------------------------------------------------------------
+// 5) Loop months from START_MONTH .. TRUE_END
+//------------------------------------------------------------
+while (begm <= true_end) {
+
+  var begm_str = ymdUTC(begm);
+
+  // endm = last day of begm month
+  var endm_stmt = snowflake.execute({
+    sqlText: "SELECT LAST_DAY(TO_DATE(?,'YYYY-MM-DD'))",
+    binds: [ begm_str ]
+  });
+  endm_stmt.next();
+  var endm = endm_stmt.getColumnValue(1); // JS Date
+
+  // cap endm at true_end
+  if (endm > true_end) endm = true_end;
+  var endm_str = ymdUTC(endm);
+
+  // yr_mth = YYYYMM numeric
+  var ym_stmt = snowflake.execute({
+    sqlText: "SELECT TO_NUMBER(TO_CHAR(TO_DATE(?,'YYYY-MM-DD'),'YYYYMM'))",
+    binds: [ begm_str ]
+  });
+  ym_stmt.next();
+  var yr_mth = ym_stmt.getColumnValue(1);
+
+  //----------------------------------------------------------
+  // Insert month slice (SAS-equivalent)
+  // - Valid slice uses ASOFDT
+  // - Cast to DATE for stable arithmetic
+  // - Budget group matches SAS NVL(...,'00')
+  //----------------------------------------------------------
+  var insert_sql = `
+    INSERT INTO MHTEAM.MHA.CASELOAD_MEMBER_DAYS_TEMP
+    SELECT
+      ${yr_mth} AS yr_mth,
+      NVL(se.cde_budget_group, '00') AS cde_budget_group,
+      SUM(
+        CASE
+          WHEN TO_DATE(se.dte_effective) < TO_DATE('${begm_str}')
+           AND TO_DATE(se.dte_end)       > TO_DATE('${endm_str}')
+            THEN DATEDIFF(day, TO_DATE('${begm_str}'), TO_DATE('${endm_str}')) + 1
+
+          WHEN TO_DATE(se.dte_effective) < TO_DATE('${begm_str}')
+            THEN DATEDIFF(day, TO_DATE('${begm_str}'), TO_DATE(se.dte_end)) + 1
+
+          WHEN TO_DATE(se.dte_end) > TO_DATE('${endm_str}')
+            THEN DATEDIFF(day, TO_DATE(se.dte_effective), TO_DATE('${endm_str}')) + 1
+
+          ELSE DATEDIFF(day, TO_DATE(se.dte_effective), TO_DATE(se.dte_end)) + 1
+        END
+      ) AS mem_days
+    FROM MHDWPROD.NW.NW_STATE_ELIGIBILITY_HIST se
+    WHERE TO_DATE('${asof_str}')
+          BETWEEN TO_DATE(se.valid_from_dt_tm) AND TO_DATE(se.valid_thru_dt_tm)
+      AND se.ind_active = 'Y'
+      AND TO_DATE(se.dte_effective) <= TO_DATE('${endm_str}')
+      AND TO_DATE(se.dte_end)       >= TO_DATE('${begm_str}')
+    GROUP BY NVL(se.cde_budget_group, '00')
+  `;
+
+  snowflake.execute({ sqlText: insert_sql });
+  inserted++;
+
+  // next month
+  var nxt_stmt = snowflake.execute({
+    sqlText: "SELECT DATEADD(month, 1, TO_DATE(?,'YYYY-MM-DD'))",
+    binds: [ begm_str ]
+  });
+  nxt_stmt.next();
+  begm = nxt_stmt.getColumnValue(1);
+}
+
+//------------------------------------------------------------
+// 6) Final output table (overwritten each run)
+//------------------------------------------------------------
+snowflake.execute({
+  sqlText: `
+    CREATE OR REPLACE TABLE MHTEAM.MHA.CASELOAD_MEMBER_DAYS AS
+    SELECT *
+    FROM MHTEAM.MHA.CASELOAD_MEMBER_DAYS_TEMP
+    ORDER BY YR_MTH ASC, CDE_BUDGET_GROUP ASC
+  `
+});
+
+return "✅ CASELOAD_MEMBER_DAYS completed through " + ymdUTC(true_end) +
+       " | ASOFDT=" + asof_str +
+       " | months_inserted=" + inserted;
+$$;
+
+
+
+
+
+
+
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.CASELOAD_MONTHLY_DB2A("START_MONTH" DATE DEFAULT '2006-07-01', "END_MONTH" DATE DEFAULT CURRENT_DATE())
+RETURNS VARCHAR
+LANGUAGE JAVASCRIPT
+EXECUTE AS CALLER
+AS '
+var begm = START_MONTH;
+var endm;
+var yr_mth;
+var inserted = 0;
+
+// --- Force END to be last day of previous month ---
+var stmt = snowflake.execute({
+    sqlText: "SELECT LAST_DAY(DATEADD(month, -1, CURRENT_DATE()))"
+});
+stmt.next();
+var true_end = stmt.getColumnValue(1);
+
+// --- Create working table ---
+snowflake.execute({
+    sqlText: `
+        CREATE OR REPLACE TABLE MHTEAM.MHA.CASELOAD_MEMBER_DAYS_TEMP (
+            YR_MTH NUMBER,
+            CDE_BUDGET_GROUP STRING,
+            MEM_DAYS NUMBER
+        );
+    `
+});
+
+// --- Loop through each month (stop at true_end) ---
+while (begm <= true_end) {
+
+    var begm_str = begm.toISOString().slice(0,10);
+
+    // Get last day of this month
+    var endm_stmt = snowflake.execute({
+        sqlText: "SELECT LAST_DAY(TO_DATE(?))",
+        binds: [begm_str]
+    });
+    endm_stmt.next();
+    endm = endm_stmt.getColumnValue(1);
+    var endm_str = endm.toISOString().slice(0,10);
+
+    // YYYYMM number
+    var ym_stmt = snowflake.execute({
+        sqlText: "SELECT TO_NUMBER(TO_CHAR(TO_DATE(?), ''YYYYMM''))",
+        binds: [begm_str]
+    });
+    ym_stmt.next();
+    yr_mth = ym_stmt.getColumnValue(1);
+
+    // Insert data
+    var insert_sql = `
+        INSERT INTO MHTEAM.MHA.CASELOAD_MEMBER_DAYS_TEMP
+        SELECT
+            ${yr_mth} AS yr_mth,
+            LPAD(TRIM(NVL(cde_budget_group, ''00'')), 2, ''0'') AS cde_budget_group,
+            SUM(
+                CASE
+                    WHEN se.dte_effective < TO_DATE(''${begm_str}'') AND se.dte_end > TO_DATE(''${endm_str}'')
+                        THEN DATEDIFF(day, TO_DATE(''${begm_str}''), TO_DATE(''${endm_str}'')) + 1
+                    WHEN se.dte_effective < TO_DATE(''${begm_str}'')
+                        THEN DATEDIFF(day, TO_DATE(''${begm_str}''), se.dte_end) + 1
+                    WHEN se.dte_end > TO_DATE(''${endm_str}'')
+                        THEN DATEDIFF(day, se.dte_effective, TO_DATE(''${endm_str}'')) + 1
+                    ELSE DATEDIFF(day, se.dte_effective, se.dte_end) + 1
+                END
+            ) AS mem_days
+        FROM MHDWPROD.NW.NW_STATE_ELIGIBILITY_HIST se
+        WHERE CURRENT_DATE() BETWEEN se.valid_from_dt_tm AND se.valid_thru_dt_tm
+          AND se.ind_active = ''Y''
+          AND se.dte_effective <= TO_DATE(''${endm_str}'')
+          AND se.dte_end >= TO_DATE(''${begm_str}'')
+        GROUP BY LPAD(TRIM(NVL(cde_budget_group, ''00'')), 2, ''0'');
+    `;
+    snowflake.execute({ sqlText: insert_sql });
+    inserted++;
+
+    // Next month
+    var nxt = snowflake.execute({
+        sqlText: "SELECT DATEADD(month, 1, TO_DATE(?))",
+        binds: [begm_str]
+    });
+    nxt.next();
+    begm = nxt.getColumnValue(1);
+}
+
+// --- Final output ---
+snowflake.execute({
+    sqlText: `
+        CREATE OR REPLACE TABLE MHTEAM.MHA.CASELOAD_MEMBER_DAYS AS
+        SELECT *
+        FROM MHTEAM.MHA.CASELOAD_MEMBER_DAYS_TEMP
+        ORDER BY YR_MTH ASC, CDE_BUDGET_GROUP ASC;
+    `
+});
+
+return "✅ CASELOAD_MEMBER_DAYS completed successfully up through " + true_end;
+
+';
