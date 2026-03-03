@@ -1,0 +1,49 @@
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.SNAPSHOT_MONTHLY_DB()
+RETURNS VARCHAR
+LANGUAGE JAVASCRIPT
+EXECUTE AS CALLER
+AS
+$$
+try {
+
+  var rs = snowflake.execute({sqlText: `
+    SELECT
+      LAST_DAY(DATEADD(MONTH,-1, CURRENT_DATE()))::DATE AS SNAPDT,
+      DATEADD(DAY, 1, LAST_DAY(DATEADD(MONTH,-1, CURRENT_DATE())))::DATE AS EXTRDT,
+      TO_NUMBER(TO_CHAR(LAST_DAY(DATEADD(MONTH,-1, CURRENT_DATE())), 'YYYYMM')) AS YR_MTH
+  `});
+  rs.next();
+
+  var snapdt = rs.getColumnValue("SNAPDT");
+  var extrdt = rs.getColumnValue("EXTRDT");
+  var yr_mth = rs.getColumnValue("YR_MTH");
+
+  snowflake.execute({sqlText: `
+    CREATE OR REPLACE TEMP TABLE TMP_SNAPSHOT AS
+    SELECT
+      ${yr_mth} AS YR_MTH,
+      LPAD(TRIM(COALESCE(se.cde_budget_group,'00')),2,'0') AS CDE_BUDGET_GROUP,
+      COUNT(DISTINCT se.mem_seq) AS MEMBERS
+    FROM MHDWPROD.NW.NW_STATE_ELIGIBILITY_HIST se
+    WHERE TO_DATE('${extrdt}') BETWEEN se.valid_from_dt_tm AND se.valid_thru_dt_tm
+      AND se.ind_active = 'Y'
+      AND TO_DATE('${snapdt}') BETWEEN se.dte_effective AND se.dte_end
+    GROUP BY 1,2;
+  `});
+
+  snowflake.execute({sqlText: `
+    DELETE FROM MHTEAM.MHA.BUDGET_MONTHLY_SNAPSHOT_DB
+    WHERE YR_MTH = ${yr_mth};
+  `});
+
+  var ins = snowflake.execute({sqlText: `
+    INSERT INTO MHTEAM.MHA.BUDGET_MONTHLY_SNAPSHOT_DB
+    SELECT * FROM TMP_SNAPSHOT;
+  `});
+
+  return '✅ Snapshot loaded for ' + yr_mth;
+
+} catch (err) {
+  return '❌ Error: ' + err.message;
+}
+$$;

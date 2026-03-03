@@ -1,0 +1,77 @@
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.RUN_MONTHLY_PIPELINE_FIRST_TUE()
+RETURNS STRING
+LANGUAGE SQL
+EXECUTE AS CALLER
+AS
+$$
+/*============================================================
+  RUN_MONTHLY_PIPELINE_FIRST_TUE
+  ------------------------------------------------------------
+  PURPOSE
+  - Run the monthly Snapshot + Caseload pipeline ONLY on the
+    first Tuesday of each month.
+
+  WHY THIS DESIGN
+  - Snowflake task is scheduled to run every Tuesday.
+  - This procedure checks whether today is the first Tuesday.
+    If not, it exits cleanly (no work performed).
+
+  EXECUTION ORDER (on first Tuesday only)
+  1) Snapshot monthly refresh:
+       CALL MHTEAM.MHA.SNAPSHOT_MONTHLY_DB();
+     - Updates historical snapshot table:
+         MHTEAM.MHA.BUDGET_MONTHLY_SNAPSHOT_DB
+     - Month-slice replace (delete + insert) prevents duplicates.
+
+  2) Caseload monthly refresh:
+       CALL MHTEAM.MHA.CASELOAD_MONTHLY_DB2();
+     - Rebuilds caseload output table:
+         MHTEAM.MHA.CASELOAD_MEMBER_DAYS
+     - Full overwrite (CREATE OR REPLACE) prevents duplicates.
+
+  RETURNS
+  - "Skipped" message if not first Tuesday
+  - "Complete" message with procedure outputs if run
+============================================================*/
+DECLARE
+  today        DATE DEFAULT CURRENT_DATE();
+  first_of_mon DATE DEFAULT DATE_TRUNC('MONTH', today);
+  first_tue    DATE;
+
+  msg_snap     STRING;
+  msg_case     STRING;
+BEGIN
+  /*----------------------------------------------------------
+    Compute FIRST TUESDAY of the current month.
+    ISO weekday: Mon=1, Tue=2, ... Sun=7
+    Offset from first_of_mon to the first Tuesday:
+      MOD(2 - dayofweek + 7, 7)
+  ----------------------------------------------------------*/
+  first_tue := DATEADD(
+                DAY,
+                MOD(2 - DAYOFWEEKISO(first_of_mon) + 7, 7),
+                first_of_mon
+              );
+
+  /* If today is not the first Tuesday, do nothing */
+  IF (today <> first_tue) THEN
+    RETURN '⏭️ Skipped: today (' || TO_CHAR(today,'YYYY-MM-DD') ||
+           ') is not first Tuesday (' || TO_CHAR(first_tue,'YYYY-MM-DD') || ').';
+  END IF;
+
+  /*----------------------------------------------------------
+    1) Run Snapshot (monthly member counts)
+  ----------------------------------------------------------*/
+  msg_snap := (CALL MHTEAM.MHA.SNAPSHOT_MONTHLY_DB());
+
+  /*----------------------------------------------------------
+    2) Run Caseload (monthly member-days)
+  ----------------------------------------------------------*/
+  msg_case := (CALL MHTEAM.MHA.CASELOAD_MONTHLY_DB2());
+
+  RETURN '✅ MONTHLY PIPELINE COMPLETE (First Tuesday)' || '\n' ||
+         msg_snap || '\n' ||
+         msg_case;
+
+END;
+$$;

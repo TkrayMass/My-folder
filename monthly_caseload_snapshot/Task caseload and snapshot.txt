@@ -1,0 +1,26 @@
+CREATE OR REPLACE TASK MHTEAM.MHA.MONTHLY_PIPELINE_TASK
+  WAREHOUSE = MHA_WH
+  SCHEDULE = 'USING CRON 9 9 * * TUE America/New_York'
+  COMMENT = 'Runs every Tuesday at 9:09 AM ET; master proc runs Snapshot+Caseload only on the first Tuesday of each month.'
+AS
+/*============================================================
+  MONTHLY_PIPELINE_TASK
+  ------------------------------------------------------------
+  PURPOSE
+  - Task runs every Tuesday at 9:09 AM (America/New_York).
+  - The called master procedure checks whether today is the
+    first Tuesday of the month:
+      * If YES -> runs monthly Snapshot + Caseload
+      * If NO  -> exits with "Skipped" message
+
+  EXECUTION
+  - Calls: MHTEAM.MHA.RUN_MONTHLY_PIPELINE_FIRST_TUE()
+
+  NOTES
+  - Keep old snapshot/caseload tasks SUSPENDED to avoid double runs.
+  - Warehouse: MHA_WH
+============================================================*/
+  CALL MHTEAM.MHA.RUN_MONTHLY_PIPELINE_FIRST_TUE();
+
+-- Enable the task
+ALTER TASK MHTEAM.MHA.MONTHLY_PIPELINE_TASK RESUME;
