@@ -14,27 +14,68 @@ DECLARE
     v_lastweek  DATE;
     v_enddate   DATE;
 BEGIN
-    /* current week's Wednesday */
+    /* Current week's Wednesday and prior Wednesday */
     v_today    := DATEADD(DAY, 3 - DAYOFWEEKISO(CURRENT_DATE()), CURRENT_DATE());
     v_lastweek := DATEADD(DAY, -7, v_today);
     v_enddate  := v_today;
 
-    /* 1) last Wednesday + this Wednesday */
+    /*============================================================
+      1) Historical week/month helper tables
+    ============================================================*/
+
+    CREATE OR REPLACE TABLE MHDWPROD.MHA.WEEKTABLE_ AS
+    SELECT
+        'Month of' AS Timeperiod,
+        calendar_year,
+        calendar_week_num,
+        dt,
+        num_month,
+        dt AS startdt,
+        dt AS enddt,
+        dt_yyyymmdd AS firstdtweek
+    FROM MHDWPROD.NW.NW_DATE
+    WHERE calendar_year >= 2023
+      AND dt >= :v_startdate
+      AND dt <= :v_enddate
+
+    UNION ALL
+
+    SELECT
+        'Day of' AS Timeperiod,
+        calendar_year,
+        dt_yyyymmdd AS calendar_week_num,
+        dt,
+        MIN(num_month) AS num_month,
+        MIN(dt) AS startdt,
+        MAX(dt) AS enddt,
+        MIN(dt_yyyymmdd) AS firstdtweek
+    FROM MHDWPROD.NW.NW_DATE
+    WHERE calendar_year >= 2023
+      AND dt > :v_lastweek
+      AND dt <= :v_today
+    GROUP BY calendar_year, dt_yyyymmdd, dt
+    ORDER BY calendar_year, calendar_week_num, num_month, dt
+    ;
+
+    /* Historical monthly periods used by enrollment/disenrollment build */
     CREATE OR REPLACE TABLE MHDWPROD.MHA.TEST_WEEKTABLE2_ AS
     SELECT
-        YEAR(report_dt) AS calendar_year,
-        'Week Ending Wednesday' AS Timeperiod,
-        TO_NUMBER(TO_CHAR(report_dt,'YYYYMMDD')) AS num_month,
-        report_dt AS startdt,
-        report_dt AS enddt,
-        TO_NUMBER(TO_CHAR(report_dt,'YYYYMMDD')) AS firstdtweek
-    FROM (
-        SELECT :v_lastweek AS report_dt
-        UNION ALL
-        SELECT :v_today    AS report_dt
-    );
+        calendar_year,
+        'Month of' AS Timeperiod,
+        num_month,
+        MIN(dt) AS startdt,
+        MAX(dt) AS enddt,
+        MIN(dt_yyyymmdd) AS firstdtweek
+    FROM MHDWPROD.NW.NW_DATE
+    WHERE calendar_year >= 2023
+      AND dt >= :v_startdate
+      AND dt <= :v_enddate
+    GROUP BY calendar_year, num_month
+    ;
 
-    /* 2) member exclusion list */
+    /*============================================================
+      2) Member exclusion list
+    ============================================================*/
     CREATE OR REPLACE TABLE MHDWPROD.MHA.NW_MEMBER_ENROLL AS
     SELECT mem.*
     FROM MHDWPROD.NW.NW_MEMBER mem
@@ -46,12 +87,16 @@ BEGIN
         '100024398297',
         '100220572927',
         '100008695023'
-    );
+    )
+    ;
 
-    /* 3) region/service area by report date */
+    /*============================================================
+      3) Region/service area
+      Keep older point-in-time logic based on v_today so it matches
+      the monthly workflow that was working before
+    ============================================================*/
     CREATE OR REPLACE TABLE MHDWPROD.MHA.A_REGION_SRVAREA AS
     SELECT
-        wk.startdt AS report_dt,
         mem.sak_recip,
         mem.mem_seq,
         mem.id_medicaid,
@@ -63,8 +108,6 @@ BEGIN
         zip.dsc_mc_region_enroll,
         zip.COUNTY
     FROM MHDWPROD.MHA.NW_MEMBER_ENROLL mem
-    INNER JOIN MHDWPROD.MHA.TEST_WEEKTABLE2_ wk
-        ON 1 = 1
     INNER JOIN (
         SELECT
             sak_recip,
@@ -76,7 +119,7 @@ BEGIN
     ) addr
         ON addr.sak_recip = mem.sak_recip
        AND addr.cde_addr_usage = 'MR'
-       AND wk.startdt BETWEEN addr.valid_from_dt_tm AND addr.valid_thru_dt_tm
+       AND :v_today BETWEEN addr.valid_from_dt_tm AND addr.valid_thru_dt_tm
     INNER JOIN (
         SELECT
             ADR_MAIL_ZIP,
@@ -99,14 +142,17 @@ BEGIN
         FROM MHDWPROD.NW.NW_ZIP_CUR
     ) zip
         ON zip.ADR_MAIL_ZIP = addr.ADR_ZIP_CODE
-       AND wk.startdt BETWEEN zip.VALID_FROM_DT_TM AND zip.VALID_THRU_DT_TM
+       AND :v_today BETWEEN zip.VALID_FROM_DT_TM AND zip.VALID_THRU_DT_TM
     ;
 
-    /* 4) enrollment + disenrollment detail */
+    /*============================================================
+      4) Historical enrollment + disenrollment detail
+      This is the key fix: build monthly historical ACOENR_02_ENRDIS
+    ============================================================*/
     CREATE OR REPLACE TABLE MHDWPROD.MHA.ACOENR_02_ENRDIS AS
 
     /* ================= ENROLLMENT ================= */
-    SELECT
+    SELECT DISTINCT
         'enrollment' AS type,
         wk.Timeperiod,
         wk.calendar_year,
@@ -155,9 +201,7 @@ BEGIN
             enr0.*,
             selig.mco_prv_seq,
             selig.CDE_RATE_CELL_MCO,
-            selig.CDE_RATE_CELL_BH,
-            selig.VALID_FROM_DT_TM AS selig_valid_from_dt_tm,
-            selig.VALID_THRU_DT_TM AS selig_valid_thru_dt_tm
+            selig.CDE_RATE_CELL_BH
         FROM MHDWPROD.NW.NW_ENROLLMENT_HIST enr0
         LEFT JOIN MHDWPROD.NW.NW_STATE_ELIGIBILITY_HIST selig
             ON enr0.mem_seq = selig.mem_seq
@@ -172,36 +216,32 @@ BEGIN
                 63365380,91912254,81819365,81387151,88074860,98832756,98347493
            )
            AND enr0.dte_effective_enr BETWEEN selig.dte_effective AND selig.dte_end
+           AND :v_enddate BETWEEN selig.VALID_FROM_DT_TM AND selig.VALID_THRU_DT_TM
         INNER JOIN MHDWPROD.NW.NW_MEMBER_HIST mh
             ON mh.mem_seq = enr0.mem_seq
     ) enr
     INNER JOIN MHDWPROD.NW.NW_AID_CATEGORY ac
         ON enr.aidcat_seq = ac.aidcat_seq
-    INNER JOIN MHDWPROD.MHA.TEST_WEEKTABLE2_ wk
-        ON enr.dte_effective_enr BETWEEN wk.startdt AND wk.enddt
     INNER JOIN MHDWPROD.MHA.A_REGION_SRVAREA mem
         ON enr.mem_seq = mem.mem_seq
-       AND wk.startdt = mem.report_dt
     INNER JOIN MHDWPROD.NW.NW_PROVIDER prv
         ON enr.prv_seq = prv.prv_seq
     LEFT JOIN MHDWPROD.NW.NW_RATE_CELL_CUR rc
         ON enr.CDE_RATE_CELL_MCO = rc.CDE_RATE_CELL
     LEFT JOIN MHDWPROD.NW.NW_RATE_CELL_CUR rc2
         ON enr.CDE_RATE_CELL_BH = rc2.CDE_RATE_CELL
+    INNER JOIN MHDWPROD.MHA.TEST_WEEKTABLE2_ wk
+        ON enr.dte_effective_enr BETWEEN wk.startdt AND wk.enddt
     LEFT JOIN MHDWPROD.NW.NW_PROVIDER_AFFIL_HIST affil
         ON prv.sak_prov = affil.sak_prov
        AND prv.cde_service_loc = affil.cde_service_loc
        AND enr.dte_effective_enr BETWEEN affil.dte_effective AND affil.dte_end
-       AND wk.startdt BETWEEN affil.VALID_FROM_DT_TM AND affil.VALID_THRU_DT_TM
+       AND enr.dte_effective_enr BETWEEN affil.VALID_FROM_DT_TM AND affil.VALID_THRU_DT_TM
        AND affil.cde_affiliation_type IN ('AC')
        AND prv.cde_prov_type IN ('01','17','20','80','81','91','97')
     WHERE enr.DTE_EFFECTIVE BETWEEN :v_startdate AND :v_enddate
       AND enr.dte_effective_enr BETWEEN :v_startdate AND :v_enddate
-      AND wk.startdt BETWEEN enr.VALID_FROM_DT_TM AND enr.VALID_THRU_DT_TM
-      AND (
-            enr.selig_valid_from_dt_tm IS NULL
-            OR wk.startdt BETWEEN enr.selig_valid_from_dt_tm AND enr.selig_valid_thru_dt_tm
-          )
+      AND :v_enddate BETWEEN enr.VALID_FROM_DT_TM AND enr.VALID_THRU_DT_TM
       AND prv.cde_prov_type IN ('A2','A4','30','01','17','20','80','81','91','97')
       AND enr.ind_active = 'Y'
       AND enr.cde_enroll_status = 'A'
@@ -251,7 +291,7 @@ BEGIN
     UNION ALL
 
     /* ================= DISENROLLMENT ================= */
-    SELECT
+    SELECT DISTINCT
         'disenrollment' AS type,
         wk.Timeperiod,
         wk.calendar_year,
@@ -300,9 +340,7 @@ BEGIN
             enr0.*,
             selig.mco_prv_seq,
             selig.CDE_RATE_CELL_MCO,
-            selig.CDE_RATE_CELL_BH,
-            selig.VALID_FROM_DT_TM AS selig_valid_from_dt_tm,
-            selig.VALID_THRU_DT_TM AS selig_valid_thru_dt_tm
+            selig.CDE_RATE_CELL_BH
         FROM MHDWPROD.NW.NW_ENROLLMENT_HIST enr0
         LEFT JOIN MHDWPROD.NW.NW_STATE_ELIGIBILITY_HIST selig
             ON enr0.mem_seq = selig.mem_seq
@@ -317,36 +355,32 @@ BEGIN
                 63365380,91912254,81819365,81387151,88074860,98832756,98347493
            )
            AND enr0.dte_effective_enr BETWEEN selig.dte_effective AND selig.dte_end
+           AND :v_enddate BETWEEN selig.VALID_FROM_DT_TM AND selig.VALID_THRU_DT_TM
         INNER JOIN MHDWPROD.NW.NW_MEMBER_HIST mh
             ON mh.mem_seq = enr0.mem_seq
     ) enr
     INNER JOIN MHDWPROD.NW.NW_AID_CATEGORY ac
         ON enr.aidcat_seq = ac.aidcat_seq
-    INNER JOIN MHDWPROD.MHA.TEST_WEEKTABLE2_ wk
-        ON enr.dte_end_enr BETWEEN wk.startdt AND wk.enddt
     INNER JOIN MHDWPROD.MHA.A_REGION_SRVAREA mem
         ON enr.mem_seq = mem.mem_seq
-       AND wk.startdt = mem.report_dt
     INNER JOIN MHDWPROD.NW.NW_PROVIDER prv
         ON enr.prv_seq = prv.prv_seq
     LEFT JOIN MHDWPROD.NW.NW_RATE_CELL_CUR rc
         ON enr.CDE_RATE_CELL_MCO = rc.CDE_RATE_CELL
     LEFT JOIN MHDWPROD.NW.NW_RATE_CELL_CUR rc2
         ON enr.CDE_RATE_CELL_BH = rc2.CDE_RATE_CELL
+    INNER JOIN MHDWPROD.MHA.TEST_WEEKTABLE2_ wk
+        ON enr.dte_end_enr BETWEEN wk.startdt AND wk.enddt
     LEFT JOIN MHDWPROD.NW.NW_PROVIDER_AFFIL_HIST affil
         ON prv.sak_prov = affil.sak_prov
        AND prv.cde_service_loc = affil.cde_service_loc
        AND enr.dte_end_enr BETWEEN affil.dte_effective AND affil.dte_end
-       AND wk.startdt BETWEEN affil.VALID_FROM_DT_TM AND affil.VALID_THRU_DT_TM
+       AND enr.dte_end_enr BETWEEN affil.VALID_FROM_DT_TM AND affil.VALID_THRU_DT_TM
        AND affil.cde_affiliation_type IN ('AC')
        AND prv.cde_prov_type IN ('01','17','20','80','81','91','97')
     WHERE enr.DTE_END BETWEEN :v_startdate AND :v_enddate
       AND enr.dte_end_enr BETWEEN :v_startdate AND :v_enddate
-      AND wk.startdt BETWEEN enr.VALID_FROM_DT_TM AND enr.VALID_THRU_DT_TM
-      AND (
-            enr.selig_valid_from_dt_tm IS NULL
-            OR wk.startdt BETWEEN enr.selig_valid_from_dt_tm AND enr.selig_valid_thru_dt_tm
-          )
+      AND :v_enddate BETWEEN enr.VALID_FROM_DT_TM AND enr.VALID_THRU_DT_TM
       AND prv.cde_prov_type IN ('A2','A4','30','01','17','20','80','81','91','97')
       AND enr.ind_active = 'Y'
       AND enr.cde_enroll_status = 'A'
@@ -394,7 +428,10 @@ BEGIN
         mem.dsc_mc_region_enroll
     ;
 
-    /* 5) compare last Wednesday vs this Wednesday */
+    /*============================================================
+      5) Weekly compare table
+      Keep separate weekly summary for current vs prior Wednesday
+    ============================================================*/
     CREATE OR REPLACE TABLE MHDWPROD.MHA.ACOENR_02_ENRDIS_COMPARE AS
     SELECT
         type,
@@ -407,12 +444,12 @@ BEGIN
         MCO_REGION,
         SERVICE_AREA,
         dsc_mc_region_enroll,
-        SUM(CASE WHEN startdt = :v_lastweek THEN mbrs ELSE 0 END) AS mbrs_last_wed,
-        SUM(CASE WHEN startdt = :v_today    THEN mbrs ELSE 0 END) AS mbrs_this_wed,
-        SUM(CASE WHEN startdt = :v_today    THEN mbrs ELSE 0 END)
-      - SUM(CASE WHEN startdt = :v_lastweek THEN mbrs ELSE 0 END) AS change_vs_last_wed,
-        :v_lastweek AS last_wednesday_dt,
-        :v_today AS this_wednesday_dt,
+        SUM(CASE WHEN enddt = LAST_DAY(:v_lastweek) THEN mbrs ELSE 0 END) AS mbrs_last_month,
+        SUM(CASE WHEN enddt = LAST_DAY(:v_today)    THEN mbrs ELSE 0 END) AS mbrs_this_month,
+        SUM(CASE WHEN enddt = LAST_DAY(:v_today)    THEN mbrs ELSE 0 END)
+      - SUM(CASE WHEN enddt = LAST_DAY(:v_lastweek) THEN mbrs ELSE 0 END) AS change_vs_last_month,
+        LAST_DAY(:v_lastweek) AS last_month_dt,
+        LAST_DAY(:v_today)    AS this_month_dt,
         CURRENT_TIMESTAMP() AS run_ts
     FROM MHDWPROD.MHA.ACOENR_02_ENRDIS
     GROUP BY
@@ -427,6 +464,13 @@ BEGIN
         SERVICE_AREA,
         dsc_mc_region_enroll
     ;
+
+    RETURN
+        'Success. Built historical ACOENR_02_ENRDIS through '
+        || TO_VARCHAR(v_enddate)
+        || ' and refreshed ACOENR_02_ENRDIS_COMPARE.';
+END;
+$$;
 
     RETURN
         'Success. Built ACOENR_02_ENRDIS and ACOENR_02_ENRDIS_COMPARE for '
