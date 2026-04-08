@@ -2,8 +2,6 @@ USE ROLE MHA_TEAM_ROLE;
 USE DATABASE MHDWPROD;
 USE SCHEMA MHA;
 
-call MHDWPROD.MHA.ENROLLMENT_WEEKLY_SP();
-
 CREATE OR REPLACE PROCEDURE MHDWPROD.MHA.ENROLLMENT_WEEKLY_SP()
 RETURNS VARCHAR
 LANGUAGE SQL
@@ -22,7 +20,7 @@ BEGIN
     v_enddate  := v_today;
 
     /* 1) last Wednesday + this Wednesday */
-    CREATE OR REPLACE TABLE TEST_WEEKTABLE2_ AS
+    CREATE OR REPLACE TABLE MHDWPROD.MHA.TEST_WEEKTABLE2_ AS
     SELECT
         YEAR(report_dt) AS calendar_year,
         'Week Ending Wednesday' AS Timeperiod,
@@ -37,7 +35,7 @@ BEGIN
     );
 
     /* 2) member exclusion list */
-    CREATE OR REPLACE TABLE NW_MEMBER_ENROLL AS
+    CREATE OR REPLACE TABLE MHDWPROD.MHA.NW_MEMBER_ENROLL AS
     SELECT mem.*
     FROM MHDWPROD.NW.NW_MEMBER mem
     WHERE mem.id_medicaid NOT IN (
@@ -51,7 +49,7 @@ BEGIN
     );
 
     /* 3) region/service area by report date */
-    CREATE OR REPLACE TABLE A_REGION_SRVAREA AS
+    CREATE OR REPLACE TABLE MHDWPROD.MHA.A_REGION_SRVAREA AS
     SELECT
         wk.startdt AS report_dt,
         mem.sak_recip,
@@ -64,8 +62,8 @@ BEGIN
         zip.DSC_MC_REGION_CAP,
         zip.dsc_mc_region_enroll,
         zip.COUNTY
-    FROM NW_MEMBER_ENROLL mem
-    INNER JOIN TEST_WEEKTABLE2_ wk
+    FROM MHDWPROD.MHA.NW_MEMBER_ENROLL mem
+    INNER JOIN MHDWPROD.MHA.TEST_WEEKTABLE2_ wk
         ON 1 = 1
     INNER JOIN (
         SELECT
@@ -105,7 +103,7 @@ BEGIN
     ;
 
     /* 4) enrollment + disenrollment detail */
-    CREATE OR REPLACE TABLE ACOENR_02_ENRDIS AS
+    CREATE OR REPLACE TABLE MHDWPROD.MHA.ACOENR_02_ENRDIS AS
 
     /* ================= ENROLLMENT ================= */
     SELECT
@@ -179,9 +177,9 @@ BEGIN
     ) enr
     INNER JOIN MHDWPROD.NW.NW_AID_CATEGORY ac
         ON enr.aidcat_seq = ac.aidcat_seq
-    INNER JOIN TEST_WEEKTABLE2_ wk
+    INNER JOIN MHDWPROD.MHA.TEST_WEEKTABLE2_ wk
         ON enr.dte_effective_enr BETWEEN wk.startdt AND wk.enddt
-    INNER JOIN A_REGION_SRVAREA mem
+    INNER JOIN MHDWPROD.MHA.A_REGION_SRVAREA mem
         ON enr.mem_seq = mem.mem_seq
        AND wk.startdt = mem.report_dt
     INNER JOIN MHDWPROD.NW.NW_PROVIDER prv
@@ -324,9 +322,9 @@ BEGIN
     ) enr
     INNER JOIN MHDWPROD.NW.NW_AID_CATEGORY ac
         ON enr.aidcat_seq = ac.aidcat_seq
-    INNER JOIN TEST_WEEKTABLE2_ wk
+    INNER JOIN MHDWPROD.MHA.TEST_WEEKTABLE2_ wk
         ON enr.dte_end_enr BETWEEN wk.startdt AND wk.enddt
-    INNER JOIN A_REGION_SRVAREA mem
+    INNER JOIN MHDWPROD.MHA.A_REGION_SRVAREA mem
         ON enr.mem_seq = mem.mem_seq
        AND wk.startdt = mem.report_dt
     INNER JOIN MHDWPROD.NW.NW_PROVIDER prv
@@ -397,7 +395,7 @@ BEGIN
     ;
 
     /* 5) compare last Wednesday vs this Wednesday */
-    CREATE OR REPLACE TABLE ACOENR_02_ENRDIS_COMPARE AS
+    CREATE OR REPLACE TABLE MHDWPROD.MHA.ACOENR_02_ENRDIS_COMPARE AS
     SELECT
         type,
         provtype,
@@ -416,7 +414,7 @@ BEGIN
         :v_lastweek AS last_wednesday_dt,
         :v_today AS this_wednesday_dt,
         CURRENT_TIMESTAMP() AS run_ts
-    FROM ACOENR_02_ENRDIS
+    FROM MHDWPROD.MHA.ACOENR_02_ENRDIS
     GROUP BY
         type,
         provtype,
@@ -437,11 +435,3 @@ BEGIN
         || TO_VARCHAR(v_today);
 END;
 $$;
-
-CREATE OR REPLACE TASK MHDWPROD.MHA.ACO_ENROLLMENT_WEEKLY_WED_TASK
-    WAREHOUSE = MHA_WH
-    SCHEDULE = 'USING CRON 0 8 * * WED America/New_York'
-AS
-    CALL MHDWPROD.MHA.ACO_ENROLLMENT_WEEKLY_WED_SP();
-
-ALTER TASK MHDWPROD.MHA.ACO_ENROLLMENT_WEEKLY_WED_TASK RESUME;
