@@ -1,90 +1,62 @@
-CREATE OR REPLACE PROCEDURE MHTEAM.MHA.SNAPSHOT_MONTHLY_DB()
 
-RETURNS VARCHAR
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.SNAPSHOT_202604_0430()
+RETURNS STRING
 LANGUAGE JAVASCRIPT
 EXECUTE AS CALLER
 AS
 $$
 try {
 
-  var rs = snowflake.execute({
-    sqlText: `
-      SELECT
-        LAST_DAY(DATEADD(MONTH,-1, CURRENT_DATE()))::DATE AS SNAPDT,
-        DATEADD(DAY, 1, LAST_DAY(DATEADD(MONTH,-1, CURRENT_DATE())))::DATE AS EXTRDT,
-        TO_NUMBER(TO_CHAR(LAST_DAY(DATEADD(MONTH,-1, CURRENT_DATE())), 'YYYYMM')) AS YR_MTH
-    `
-  });
-  rs.next();
-
-  // Convert JS Date → YYYY-MM-DD string
-  function toYMD(d) {
-    return d.toISOString().split('T')[0];
-  }
-
-  var snapdt = toYMD(rs.getColumnValue("SNAPDT"));
-  var extrdt = toYMD(rs.getColumnValue("EXTRDT"));
-  var yr_mth = rs.getColumnValue("YR_MTH");
+  var yr_mth = '202604';
+  var snapdt = '2026-04-30';
+  var extrdt = '2026-05-01';
 
   snowflake.execute({
     sqlText: `
-      CREATE OR REPLACE TEMP TABLE TMP_SNAPSHOT AS
+      CREATE OR REPLACE TABLE MHTEAM.MHA.SNAPSHOT_202604_0430 AS
       SELECT
         ${yr_mth} AS YR_MTH,
-        LPAD(TRIM(COALESCE(se.cde_budget_group,'00')), 2, '0') AS CDE_BUDGET_GROUP,
-        COUNT(*) AS MEMBERS
+        COALESCE(se.cde_budget_group, '00') AS CDE_BUDGET_GROUP,
+        COUNT(DISTINCT se.id_medicaid) AS MEMBERS
       FROM MHDWPROD.NW.NW_STATE_ELIGIBILITY_HIST se
-      WHERE TO_DATE('${extrdt}') BETWEEN TO_DATE(se.valid_from_dt_tm) AND TO_DATE(se.valid_thru_dt_tm)
+      WHERE TO_DATE('${extrdt}') BETWEEN TO_DATE(se.valid_from_dt_tm)
+                                      AND TO_DATE(se.valid_thru_dt_tm)
         AND se.ind_active = 'Y'
         AND TO_DATE('${snapdt}') >= se.dte_effective
         AND TO_DATE('${snapdt}') < DATEADD(DAY, 1, se.dte_end)
-      GROUP BY 1,2
-    `
-  });
-
-  snowflake.execute({
-    sqlText: `
-      DELETE FROM MHTEAM.MHA.BUDGET_MONTHLY_SNAPSHOT_DB
-      WHERE YR_MTH = ${yr_mth}
-    `
-  });
-
-  snowflake.execute({
-    sqlText: `
-      INSERT INTO MHTEAM.MHA.BUDGET_MONTHLY_SNAPSHOT_DB (
-        YR_MTH,
-        CDE_BUDGET_GROUP,
-        MEMBERS
-      )
-      SELECT
-        YR_MTH,
-        CDE_BUDGET_GROUP,
-        MEMBERS
-      FROM TMP_SNAPSHOT
+      GROUP BY
+        COALESCE(se.cde_budget_group, '00')
+      ORDER BY
+        CDE_BUDGET_GROUP
     `
   });
 
   var qc = snowflake.execute({
     sqlText: `
-      SELECT COUNT(*) AS ROWS_LOADED, COALESCE(SUM(MEMBERS),0) AS TOTAL_MEMBERS
-      FROM MHTEAM.MHA.BUDGET_MONTHLY_SNAPSHOT_DB
-      WHERE YR_MTH = ${yr_mth}
+      SELECT
+        COUNT(*) AS ROWS_LOADED,
+        COALESCE(SUM(MEMBERS),0) AS TOTAL_MEMBERS,
+        COALESCE(SUM(CASE WHEN CDE_BUDGET_GROUP NOT IN ('44','87','99')
+                          THEN MEMBERS ELSE 0 END),0) AS TOTAL_EXCL_44_87_99
+      FROM MHTEAM.MHA.SNAPSHOT_202604_0430
     `
   });
+
   qc.next();
 
-  return 'Snapshot loaded for ' + yr_mth +
-         ', rows=' + qc.getColumnValue("ROWS_LOADED") +
-         ', total=' + qc.getColumnValue("TOTAL_MEMBERS");
+  return 'Snapshot 202604 completed using DISTINCT members. Rows='
+       + qc.getColumnValue('ROWS_LOADED')
+       + ', Total='
+       + qc.getColumnValue('TOTAL_MEMBERS')
+       + ', Total excluding 44/87/99='
+       + qc.getColumnValue('TOTAL_EXCL_44_87_99');
 
 } catch (err) {
   return 'Error: ' + err.message;
 }
 $$;
 
-  return '✅ Snapshot loaded for ' + yr_mth;
 
-} catch (err) {
-  return '❌ Error: ' + err.message;
-}
-$$;
+CALL MHTEAM.MHA.SNAPSHOT_202604_0430();
+
+Select * from MHTEAM.MHA.SNAPSHOT_202604_0430;
