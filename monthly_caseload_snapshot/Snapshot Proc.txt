@@ -1,5 +1,4 @@
-
-CREATE OR REPLACE PROCEDURE MHTEAM.MHA.SNAPSHOT_202604_0430()
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.SNAPSHOT_MONTHLY_DYNAMIC()
 RETURNS STRING
 LANGUAGE JAVASCRIPT
 EXECUTE AS CALLER
@@ -7,25 +6,29 @@ AS
 $$
 try {
 
-  var yr_mth = '202604';
-  var snapdt = '2026-04-30';
-  var extrdt = '2026-05-01';
-
   snowflake.execute({
     sqlText: `
-      CREATE OR REPLACE TABLE MHTEAM.MHA.SNAPSHOT_202604_0430 AS
+      CREATE OR REPLACE TABLE MHTEAM.MHA.SNAPSHOT_MONTHLY_DYNAMIC AS
+      WITH dates AS (
+        SELECT
+          LAST_DAY(DATEADD(MONTH, -1, CURRENT_DATE()))::DATE AS SNAPDT,
+          DATE_TRUNC('MONTH', CURRENT_DATE())::DATE AS EXTRDT,
+          TO_NUMBER(TO_CHAR(LAST_DAY(DATEADD(MONTH, -1, CURRENT_DATE())), 'YYYYMM')) AS YR_MTH
+      )
       SELECT
-        ${yr_mth} AS YR_MTH,
-        COALESCE(se.cde_budget_group, '00') AS CDE_BUDGET_GROUP,
+        d.YR_MTH,
+        LPAD(TRIM(COALESCE(se.cde_budget_group, '00')), 2, '0') AS CDE_BUDGET_GROUP,
         COUNT(DISTINCT se.id_medicaid) AS MEMBERS
       FROM MHDWPROD.NW.NW_STATE_ELIGIBILITY_HIST se
-      WHERE TO_DATE('${extrdt}') BETWEEN TO_DATE(se.valid_from_dt_tm)
-                                      AND TO_DATE(se.valid_thru_dt_tm)
+      CROSS JOIN dates d
+      WHERE TO_TIMESTAMP_NTZ(d.EXTRDT) >= se.valid_from_dt_tm
+        AND TO_TIMESTAMP_NTZ(d.EXTRDT) <  se.valid_thru_dt_tm
         AND se.ind_active = 'Y'
-        AND TO_DATE('${snapdt}') >= se.dte_effective
-        AND TO_DATE('${snapdt}') < DATEADD(DAY, 1, se.dte_end)
+        AND d.SNAPDT BETWEEN TO_DATE(se.dte_effective)
+                         AND TO_DATE(se.dte_end)
       GROUP BY
-        COALESCE(se.cde_budget_group, '00')
+        d.YR_MTH,
+        LPAD(TRIM(COALESCE(se.cde_budget_group, '00')), 2, '0')
       ORDER BY
         CDE_BUDGET_GROUP
     `
@@ -34,17 +37,20 @@ try {
   var qc = snowflake.execute({
     sqlText: `
       SELECT
+        MIN(YR_MTH) AS YR_MTH,
         COUNT(*) AS ROWS_LOADED,
         COALESCE(SUM(MEMBERS),0) AS TOTAL_MEMBERS,
         COALESCE(SUM(CASE WHEN CDE_BUDGET_GROUP NOT IN ('44','87','99')
                           THEN MEMBERS ELSE 0 END),0) AS TOTAL_EXCL_44_87_99
-      FROM MHTEAM.MHA.SNAPSHOT_202604_0430
+      FROM MHTEAM.MHA.SNAPSHOT_MONTHLY_DYNAMIC
     `
   });
 
   qc.next();
 
-  return 'Snapshot 202604 completed using DISTINCT members. Rows='
+  return 'Snapshot completed. YR_MTH='
+       + qc.getColumnValue('YR_MTH')
+       + ', Rows='
        + qc.getColumnValue('ROWS_LOADED')
        + ', Total='
        + qc.getColumnValue('TOTAL_MEMBERS')
@@ -57,6 +63,9 @@ try {
 $$;
 
 
-CALL MHTEAM.MHA.SNAPSHOT_202604_0430();
 
-Select * from MHTEAM.MHA.SNAPSHOT_202604_0430;
+CALL MHTEAM.MHA.SNAPSHOT_MONTHLY_DYNAMIC();
+
+SELECT *
+FROM MHTEAM.MHA.SNAPSHOT_MONTHLY_DYNAMIC
+ORDER BY YR_MTH, CDE_BUDGET_GROUP;Select * from MHTEAM.MHA.SNAPSHOT_202604_0430;
