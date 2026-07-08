@@ -14,157 +14,478 @@ DECLARE
     EndDate    DATE DEFAULT CURRENT_DATE();
     lastweek   DATE DEFAULT DATEADD(DAY, -7, CURRENT_DATE());
     wh_thru_dt DATE DEFAULT CURRENT_DATE();
-    repdt      DATE DEFAULT CURRENT_DATE();
-
+    /* Report label date. Prior manual run used the day after the Wednesday run. */
+    repdt      DATE DEFAULT DATEADD(DAY, 1, CURRENT_DATE());
 BEGIN
 
-    DROP TABLE IF EXISTS weektable_;
+DROP TABLE IF EXISTS  weektable_;
 
-    CREATE OR REPLACE TABLE weektable_ AS
-    SELECT    
-        'Month of' AS Timeperiod,
-        calendar_year,
-        calendar_week_num, 
-        dt,     
-        num_month,     
-        dt AS startdt, 
-        dt AS enddt, 
-        dt_yyyymmdd AS firstdtweek
-    FROM MHDWPROD.NW.nw_date
-    WHERE calendar_year >= 2023 
-      AND dt >= :StartDate 
-      AND dt <= :EndDate
-
-    UNION ALL
-
-    SELECT  
-        'Day of' AS Timeperiod,
-        calendar_year, 
-        dt_yyyymmdd AS calendar_week_num, 
-        dt, 
-        MIN(num_month) AS num_month, 
-        MIN(dt) AS startdt, 
-        MAX(dt) AS enddt, 
-        MIN(dt_yyyymmdd) AS firstdtweek
-    FROM MHDWPROD.NW.nw_date
-    WHERE calendar_year >= 2023 
-      AND dt > :lastweek 
-      AND dt <= :today
-    GROUP BY calendar_year, dt_yyyymmdd, dt
-    ORDER BY calendar_year, calendar_week_num, num_month, dt;
+ 
+  CREATE OR REPLACE TABLE weektable_
+ as 
+select    
+    'Month of' as Timeperiod,
+     calendar_year,
+     calendar_week_num, 
+     dt,     
+     num_month,     
+     dt as startdt, 
+     dt as enddt, 
+     dt_yyyymmdd as firstdtweek
+from  MHDWPROD.NW.nw_date
+where calendar_year >= 2023 and dt>= :StartDate and dt <= :EndDate
+union all
+select  
+    'Day of' as Timeperiod,
+     calendar_year, 
+     dt_yyyymmdd as calendar_week_num, 
+     dt, 
+     min(num_month) as num_month, 
+     min(dt) as startdt, 
+     max(dt) as enddt, 
+     min(dt_yyyymmdd) as firstdtweek
+from  MHDWPROD.NW.nw_date
+  where calendar_year >= 2023 and dt> :lastweek and dt<= :today
+  group by calendar_year, dt_yyyymmdd, dt
+  order by calendar_year, calendar_week_num, num_month, dt;
 
 
-    CREATE OR REPLACE TABLE test_weektable2_ AS 
-    SELECT 
-        calendar_year,
-        'Month of' AS Timeperiod, 
-        num_month,
-        MIN(dt) AS startdt, 
-        MAX(dt) AS enddt, 
-        MIN(dt_yyyymmdd) AS firstdtweek
-    FROM MHDWPROD.NW.nw_date
-    WHERE calendar_year >= 2023 
-      AND dt >= :StartDate   
-      AND dt <= :EndDate     
-    GROUP BY calendar_year, num_month;
+
+ 
+  CREATE OR REPLACE TABLE test_weektable2_ AS 
+  SELECT 
+    calendar_year,
+    'Month of' AS Timeperiod, 
+    num_month,
+    MIN(dt) AS startdt, 
+    MAX(dt) AS enddt, 
+    MIN(dt_yyyymmdd) AS firstdtweek
+  FROM MHDWPROD.NW.nw_date
+  WHERE calendar_year >= 2023 
+    AND dt >= :StartDate   
+    AND dt <= :EndDate     
+  GROUP BY calendar_year, num_month;
 
 
-    CREATE OR REPLACE TABLE nw_member_enroll AS
-    SELECT mem.*
-    FROM MHDWPROD.NW.nw_member mem
-    WHERE mem.id_medicaid NOT IN (
-      '100231397561',
-      '100232588994',
-      '100232637148',
-      '100019999638',
-      '100024398297',
-      '100220572927',
-      '100008695023'
-    );
 
 
-    CREATE OR REPLACE TABLE a_Region_SrvArea AS
-    SELECT  
-      mem.sak_recip, 
-      mem.mem_seq, 
-      mem.id_medicaid, 
-      addr.ADR_ZIP_CODE AS RES_ZIP,
-      MCO_REGION, 
-      SERVICE_AREA, 
-      CDE_MC_REGION_CAP, 
-      DSC_MC_REGION_CAP, 
-      dsc_mc_region_enroll, 
-      COUNTY
-    FROM nw_member_enroll mem
-    INNER JOIN (
-        SELECT sak_recip, cde_addr_usage, ADR_ZIP_CODE, valid_from_dt_tm, valid_thru_dt_tm 
-        FROM MHDWPROD.NW.nw_member_addr_hist
-    ) addr
-      ON addr.sak_recip = mem.sak_recip 
-      AND addr.cde_addr_usage = 'MR' 
-      AND :today BETWEEN addr.valid_from_dt_tm AND addr.valid_thru_dt_tm
-    INNER JOIN (
-        SELECT ADR_MAIL_ZIP, SERVICE_AREA, CDE_MC_REGION_CAP, DSC_MC_REGION_CAP, 
-               dsc_mc_region_enroll, ADR_MAIL_COUNTY_DSP AS COUNTY,
-               CASE 
-                   WHEN CDE_MC_REGION_CAP = 'CSOUT' THEN 'Southern'
-                   WHEN CDE_MC_REGION_CAP = 'CCNTR' THEN 'Central'
-                   WHEN CDE_MC_REGION_CAP = 'CNORT' THEN 'Northern'
-                   WHEN CDE_MC_REGION_CAP = 'CGRBO' THEN 'Greater Boston'
-                   WHEN CDE_MC_REGION_CAP = 'CWEST' THEN 'Western'
-                   WHEN DSC_MC_REGION_CAP LIKE ' %' THEN 'Out of state/Unknown'
-                   ELSE DSC_MC_REGION_CAP 
-               END AS MCO_REGION,
-               VALID_FROM_DT_TM, valid_thru_dt_tm
-        FROM MHDWPROD.NW.nw_zip_cur
-    ) zip
-      ON zip.ADR_MAIL_ZIP = addr.ADR_ZIP_CODE 
-      AND :today BETWEEN zip.VALID_FROM_DT_TM AND zip.valid_thru_dt_tm;
 
 
-    /* Paste your existing CREATE OR REPLACE TABLE ACOEnr_02_EnrDis AS section here */
 
-    /*
-       IMPORTANT:
-       Inside the ACOEnr_02_EnrDis query, replace all old variables:
+CREATE OR REPLACE TABLE nw_member_enroll AS
+SELECT mem.*
+FROM MHDWPROD.NW.nw_member mem
+WHERE mem.id_medicaid NOT IN (
+  '100231397561',
+  '100232588994',
+  '100232637148',
+  '100019999638',
+  '100024398297',
+  '100220572927',
+  '100008695023'
+);
+SELECT * FROM nw_member_enroll;
 
-       $StartDate  -> :StartDate
-       $EndDate    -> :EndDate
-       $today      -> :today
-       $lastweek   -> :lastweek
+------2------Creating Region Table
 
-       Example:
-       and $EndDate between enr.VALID_FROM_DT_TM and enr.VALID_THRU_DT_TM
 
-       becomes:
 
+
+CREATE OR REPLACE TABLE a_Region_SrvArea AS
+SELECT  
+  mem.sak_recip, 
+  mem.mem_seq, 
+  mem.id_medicaid, 
+  addr.ADR_ZIP_CODE AS RES_ZIP,
+  MCO_REGION, 
+  SERVICE_AREA, 
+  CDE_MC_REGION_CAP, 
+  DSC_MC_REGION_CAP, 
+  dsc_mc_region_enroll, 
+  COUNTY
+FROM nw_member_enroll mem
+INNER JOIN (
+    SELECT sak_recip, cde_addr_usage, ADR_ZIP_CODE, valid_from_dt_tm, valid_thru_dt_tm 
+    FROM MHDWPROD.NW.nw_member_addr_hist
+) addr
+  ON addr.sak_recip = mem.sak_recip 
+  AND addr.cde_addr_usage = 'MR' 
+  AND :today BETWEEN addr.valid_from_dt_tm AND addr.valid_thru_dt_tm
+INNER JOIN (
+    SELECT ADR_MAIL_ZIP, SERVICE_AREA, CDE_MC_REGION_CAP, DSC_MC_REGION_CAP, 
+           dsc_mc_region_enroll, ADR_MAIL_COUNTY_DSP AS COUNTY,
+           CASE 
+               WHEN CDE_MC_REGION_CAP = 'CSOUT' THEN 'Southern'
+               WHEN CDE_MC_REGION_CAP = 'CCNTR' THEN 'Central'
+               WHEN CDE_MC_REGION_CAP = 'CNORT' THEN 'Northern'
+               WHEN CDE_MC_REGION_CAP = 'CGRBO' THEN 'Greater Boston'
+               WHEN CDE_MC_REGION_CAP = 'CWEST' THEN 'Western'
+               WHEN DSC_MC_REGION_CAP LIKE ' %' THEN 'Out of state/Unknown'
+               ELSE DSC_MC_REGION_CAP 
+           END AS MCO_REGION,
+           VALID_FROM_DT_TM, valid_thru_dt_tm
+    FROM MHDWPROD.NW.nw_zip_cur
+) zip
+  ON zip.ADR_MAIL_ZIP = addr.ADR_ZIP_CODE 
+  AND :today BETWEEN zip.VALID_FROM_DT_TM AND zip.valid_thru_dt_tm;
+  
+  
+  ----------Creating Enroll_disenroll table
+
+
+CREATE OR REPLACE TABLE ACOEnr_02_EnrDis AS
+
+select distinct 
+  'enrollment' as type,
+  wk.Timeperiod,
+  calendar_year,
+  num_month,
+  firstdtweek,
+  startdt,
+  enddt,
+  case when cde_affiliation_type is not null then 'ZZ - ACOB PCCB' 
+   when enr.dte_effective_enr between '20-Mar-2021' and '21-Mar-2021' and id_provider_location='110022129H' then  'ZZ - ACOB PCCB' 
+       when cde_prov_type in ('01','17','20','80','81','91','97') then 'ZA - PCC'
+       else prv.dsc_prov_type end as provtype,
+  case when cde_affiliation_type is not null then 'ACOB PCCB Exclude' 
+    when enr.dte_effective_enr between '20-Mar-2021' and '21-Mar-2021' and id_provider_location='110022129H' then  'ACOB PCCB Exclude' 
+       when cde_prov_type in ('01','17','20','80','81','91','97') then 'PCC Plan' /*to differentiate between PCC and Model B enrollments, only report on PCC as a class*/ 
+       else prv.name_dsp end as provname,
+  /*'N/A' as cde_rate_category,*/
+  /*'N/A' as age,*/
+  dsc_enroll_add as dsc_enrdis,
+  cde_enroll_add as cde_enrdis,
+  
+   /*04/21/2020: Yi-Ling added*/
+  case  when  rc.CDE_RATE_CATEGORY  in ('RC01_Adult') then 'RC-I Adult'    
+        when  rc.CDE_RATE_CATEGORY  in ('RC01_Child') then 'RC-I Child'     
+        when  rc.CDE_RATE_CATEGORY  in ('RC02_Adult') then 'RC-II Adult'
+        when  rc.CDE_RATE_CATEGORY  in ('RC02_Child') then 'RC-II Child'
+        when  rc.CDE_RATE_CATEGORY  in ('RC9', 'RC09') then 'RC-IX'
+        when  rc.CDE_RATE_CATEGORY  in ( 'RC10') then 'RC-X' 
+        when rc2.CDE_RATE_CATEGORY in  ('RC01_Adult' ) then 'RC-I Adult'  
+        when rc2.CDE_RATE_CATEGORY in  ('RC01_Child') then 'RC-I Child'  
+        when rc2.CDE_RATE_CATEGORY in ('RC02_Adult') then 'RC-II Adult' 
+        when rc2.CDE_RATE_CATEGORY in ('RC02_Child') then 'RC-II Child' 
+        when rc2.CDE_RATE_CATEGORY in ('RC9', 'RC09')  then 'RC-IX'
+        when rc2.CDE_RATE_CATEGORY in ('RC10') then 'RC-X'
+        else 'NULL' 
+  end as RateCat, DSC_MC_REGION_CAP, 
+
+/* 04/08/2019: Linda add regions and service areas */
+  MCO_REGION, SERVICE_AREA, dsc_mc_region_enroll,
+  count(distinct id_medicaid) as mbrs
+from 
+(select enr0.*,selig.mco_prv_seq,Selig.CDE_RATE_CELL_MCO, Selig.CDE_RATE_CELL_BH
+from
+MHDWPROD.NW.nw_enrollment_hist enr0
+left join 
+         MHDWPROD.NW.NW_STATE_ELIGIBILITY_HIST  Selig
+           on (enr0.mem_seq=Selig.mem_seq)and (enr0.mem_seq not in (69983718,
+96788565,
+29537309,
+32143782,
+50909898,
+59613322,
+65217148,
+75338283,
+76284562,
+98779823,
+98832757,
+83567163,
+6482072,
+25617860,
+62583189,
+63365379,
+87121174,
+89881026,
+98704872,
+98422657,
+98704871,
+98656687,
+992057,
+45243030,
+63313759,
+68527765,
+73256341,
+98143342,
+85775112,
+98779822,
+89881027,
+81149786,
+95315928,
+60055741,
+60877129,
+70560547,
+91897335,
+96788564,
+94791328,
+13092254,
+31229090,
+40534704,
+60585934,
+76284561,
+81387152,
+98965996,
+83572145,
+98832755,
+98422656,
+98704080,
+98704079,
+8078002,
+8078009,
+22166575,
+23569558,
+32062106,
+63365380,
+91912254,
+81819365,
+81387151,
+88074860,
+98832756,
+98347493
+)) and
+   ----id_medicaid or sak_recip w/ date parameters                
+               (enr0.dte_effective_enr between Selig.dte_effective and Selig.dte_end) and
+                :EndDate between Selig.VALID_FROM_DT_TM and Selig.VALID_THRU_DT_TM
+ inner join
+MHDWPROD.NW.NW_MEMBER_HIST mem on mem.mem_seq=enr0.mem_seq
+   ) enr    
+
+     inner join MHDWPROD.NW.NW_AID_CATEGORY ac on enr.aidcat_seq = ac.aidcat_seq 
+     inner join a_Region_SrvArea mem on enr.mem_seq = mem.mem_seq 
+     inner join MHDWPROD.NW.NW_PROVIDER prv on enr.prv_seq = prv.prv_seq 
+     /*inner join MHDWPROD.NW.nw_rate_cell rc on enr.ratecell_seq = rc.ratecell_seq*/ /*04/21/2020 removed becasue we are carrying over RC from state eligibility table*/
+     left join MHDWPROD.NW.nw_RATE_CELL_CUR rc  on (enr.CDE_RATE_CELL_MCO = rc.CDE_RATE_CELL) /*Yi-Ling added 04/21/2020*/
+     left join MHDWPROD.NW.nw_RATE_CELL_CUR rc2 on (enr.CDE_RATE_CELL_BH = rc2.CDE_RATE_CELL) /*Yi-Ling added 04/21/2020*/
+     inner join  test_weektable2_ wk on enr.dte_effective_enr between wk.startdt and wk.enddt 
+     left join  MHDWPROD.NW.NW_PROVIDER_affil_hist affil /*to differentiate between PCC and Model B enrollments, only report on PCC as a class*/ 
+    on prv.sak_prov = affil.sak_prov 
+      and prv.cde_service_loc = affil.cde_service_loc 
+      and enr.dte_effective_enr between affil.dte_effective and affil.dte_end 
+      and enr.dte_effective_enr between affil.VALID_FROM_DT_TM and affil.VALID_THRU_DT_TM
+      and cde_affiliation_type in ('AC') and prv.cde_prov_type in ('01','17','20','80','81','91','97')
+where  (enr.DTE_EFFECTIVE between :StartDate and :EndDate)
+        and enr.dte_effective_enr between :StartDate and :EndDate
+        and :EndDate between enr.VALID_FROM_DT_TM and enr.VALID_THRU_DT_TM
+        and prv.cde_prov_type in ('A2','A4','30','01','17','20','80','81','91','97')
+        and enr.ind_active = 'Y' and enr.cde_enroll_status = 'A'     
+group by 
+  wk.Timeperiod, 
+  calendar_year,
+  num_month,
+  firstdtweek,
+  startdt,
+  enddt,
+  case when cde_affiliation_type is not null then 'ZZ - ACOB PCCB' 
+   when enr.dte_effective_enr between '20-Mar-2021' and '21-Mar-2021' and id_provider_location='110022129H' then  'ZZ - ACOB PCCB' 
+       when cde_prov_type in ('01','17','20','80','81','91','97') then 'ZA - PCC'
+       else prv.dsc_prov_type end,
+  case when cde_affiliation_type is not null then 'ACOB PCCB Exclude' 
+    when enr.dte_effective_enr between '20-Mar-2021' and '21-Mar-2021' and id_provider_location='110022129H' then  'ACOB PCCB Exclude' 
+       when cde_prov_type in ('01','17','20','80','81','91','97') then 'PCC Plan' /*to differentiate between PCC and Model B enrollments, only report on PCC as a class*/ 
+       else prv.name_dsp end,
+  dsc_enroll_add,
+  cde_enroll_add, DSC_MC_REGION_CAP,
+  
+ /*04/21/2020: Yi-Ling added*/
+ case  when  rc.CDE_RATE_CATEGORY  in ('RC01_Adult') then 'RC-I Adult'    
+        when  rc.CDE_RATE_CATEGORY  in ('RC01_Child') then 'RC-I Child'     
+        when  rc.CDE_RATE_CATEGORY  in ('RC02_Adult') then 'RC-II Adult'
+        when  rc.CDE_RATE_CATEGORY  in ('RC02_Child') then 'RC-II Child'
+        when  rc.CDE_RATE_CATEGORY  in ('RC9', 'RC09') then 'RC-IX'
+        when  rc.CDE_RATE_CATEGORY  in ( 'RC10') then 'RC-X' 
+        when rc2.CDE_RATE_CATEGORY in  ('RC01_Adult' ) then 'RC-I Adult'  
+        when rc2.CDE_RATE_CATEGORY in  ('RC01_Child') then 'RC-I Child'  
+        when rc2.CDE_RATE_CATEGORY in ('RC02_Adult') then 'RC-II Adult' 
+        when rc2.CDE_RATE_CATEGORY in ('RC02_Child') then 'RC-II Child' 
+        when rc2.CDE_RATE_CATEGORY in ('RC9', 'RC09')  then 'RC-IX'
+        when rc2.CDE_RATE_CATEGORY in ('RC10') then 'RC-X'
+        else 'NULL' 
+  end, 
+/* 04/08/2019: Linda add regions and service areas */
+  MCO_REGION, SERVICE_AREA, dsc_mc_region_enroll 
+  
+union all 
+select distinct 
+  'disenrollment' as type,
+  wk.Timeperiod,
+  calendar_year,
+  num_month,
+  firstdtweek,
+  startdt,
+  enddt,
+  case when cde_affiliation_type is not null then 'ZZ - ACOB PCCB' 
+   when enr.dte_effective_enr between '20-Mar-2021' and '21-Mar-2021' and id_provider_location='110022129H' then  'ZZ - ACOB PCCB' 
+       when cde_prov_type in ('01','17','20','80','81','91','97') then 'ZA - PCC'
+       else prv.dsc_prov_type end as provtype,
+  case when cde_affiliation_type is not null then 'ACOB PCCB Exclude' 
+    when enr.dte_effective_enr between '20-Mar-2021' and '21-Mar-2021' and id_provider_location='110022129H' then  'ACOB PCCB Exclude' 
+       when cde_prov_type in ('01','17','20','80','81','91','97') then 'PCC Plan' /*to differentiate between PCC and Model B enrollments, only report on PCC as a class*/ 
+       else prv.name_dsp end as provname,
+  /*'N/A' as cde_rate_category,
+  'N/A' as age,*/
+  dsc_enroll_end as dsc_enrdis,
+  cde_enroll_end as cde_enrdis, DSC_MC_REGION_CAP,
+  
+ /*04/21/2020: Yi-Ling added*/
+   case when  rc.CDE_RATE_CATEGORY  in ('RC01_Adult') then 'RC-I Adult'    
+        when  rc.CDE_RATE_CATEGORY  in ('RC01_Child') then 'RC-I Child'     
+        when  rc.CDE_RATE_CATEGORY  in ('RC02_Adult') then 'RC-II Adult'
+        when  rc.CDE_RATE_CATEGORY  in ('RC02_Child') then 'RC-II Child'
+        when  rc.CDE_RATE_CATEGORY  in ('RC9', 'RC09') then 'RC-IX'
+        when  rc.CDE_RATE_CATEGORY  in ( 'RC10') then 'RC-X' 
+        when rc2.CDE_RATE_CATEGORY in  ('RC01_Adult' ) then 'RC-I Adult'  
+        when rc2.CDE_RATE_CATEGORY in  ('RC01_Child') then 'RC-I Child'  
+        when rc2.CDE_RATE_CATEGORY in ('RC02_Adult') then 'RC-II Adult' 
+        when rc2.CDE_RATE_CATEGORY in ('RC02_Child') then 'RC-II Child' 
+        when rc2.CDE_RATE_CATEGORY in ('RC9', 'RC09')  then 'RC-IX'
+        when rc2.CDE_RATE_CATEGORY in ('RC10') then 'RC-X'
+        else 'NULL' 
+  end as RateCat,
+ 
+/* 04/08/2019: Linda add regions and service areas */
+  MCO_REGION, SERVICE_AREA, dsc_mc_region_enroll,
+  count(distinct id_medicaid) as mbrs
+from  
+(select enr0.*,selig.mco_prv_seq,Selig.CDE_RATE_CELL_MCO, Selig.CDE_RATE_CELL_BH
+from
+MHDWPROD.NW.nw_enrollment_hist enr0
+left join 
+          MHDWPROD.NW.nw_state_eligibility_hist  Selig
+           on (enr0.mem_seq=Selig.mem_seq)and 
+           enr0.mem_seq not in (69983718,
+96788565,
+29537309,
+32143782,
+50909898,
+59613322,
+65217148,
+75338283,
+76284562,
+98779823,
+98832757,
+83567163,
+6482072,
+25617860,
+62583189,
+63365379,
+87121174,
+89881026,
+98704872,
+98422657,
+98704871,
+98656687,
+992057,
+45243030,
+63313759,
+68527765,
+73256341,
+98143342,
+85775112,
+98779822,
+89881027,
+81149786,
+95315928,
+60055741,
+60877129,
+70560547,
+91897335,
+96788564,
+94791328,
+13092254,
+31229090,
+40534704,
+60585934,
+76284561,
+81387152,
+98965996,
+83572145,
+98832755,
+98422656,
+98704080,
+98704079,
+8078002,
+8078009,
+22166575,
+23569558,
+32062106,
+63365380,
+91912254,
+81819365,
+81387151,
+88074860,
+98832756,
+98347493)----id_medicaid or sak_recip w/ date parameters                
+               and (enr0.dte_effective_enr between Selig.dte_effective and Selig.dte_end) and
+               :EndDate between Selig.VALID_FROM_DT_TM and Selig.VALID_THRU_DT_TM
+ inner join
+MHDWPROD.NW.nw_member_hist mem on mem.mem_seq=enr0.mem_seq
+   ) enr    
+ 
+     inner join  MHDWPROD.NW.nw_aid_category ac on enr.aidcat_seq = ac.aidcat_seq 
+     inner join   a_Region_SrvArea mem on enr.mem_seq = mem.mem_seq 
+     inner join   MHDWPROD.NW.nw_provider prv on enr.prv_seq = prv.prv_seq 
+     /*inner join  MHDWPROD.NW.nw_rate_cell rc on enr.ratecell_seq = rc.ratecell_seq*/ /*04/21/2020 removed becasue we are carrying over RC from state eligibility table*/
+     left join MHDWPROD.NW.nw_RATE_CELL_CUR rc  on (enr.CDE_RATE_CELL_MCO = rc.CDE_RATE_CELL) /*Yi-Ling added 04/21/2020*/
+     left join MHDWPROD.NW.nw_RATE_CELL_CUR rc2 on (enr.CDE_RATE_CELL_BH = rc2.CDE_RATE_CELL) /*Yi-Ling added 04/21/2020*/
+     inner join   test_weektable2_ wk on enr.dte_end_enr between wk.startdt and wk.enddt 
+     left join  MHDWPROD.NW.nw_provider_affil_hist affil  /*to differentiate between PCC and Model B enrollments, only report on PCC as a class*/ 
+     on prv.sak_prov = affil.sak_prov 
+        and prv.cde_service_loc = affil.cde_service_loc 
+        and enr.dte_end_enr between affil.dte_effective and affil.dte_end 
+        and enr.dte_end_enr between affil.VALID_FROM_DT_TM and affil.VALID_THRU_DT_TM
+        and cde_affiliation_type in ('AC') and prv.cde_prov_type in ('01','17','20','80','81','91','97')
+where (enr.DTE_end between :StartDate and :EndDate) 
+       and enr.dte_end_enr between :StartDate and :EndDate
        and :EndDate between enr.VALID_FROM_DT_TM and enr.VALID_THRU_DT_TM
-    */
+       and prv.cde_prov_type in ('A2','A4','30','01','17','20','80','81','91','97')
+       and enr.ind_active = 'Y' and enr.cde_enroll_status = 'A'     
+group by wk.Timeperiod, 
+  calendar_year,
+  num_month,
+  firstdtweek,
+  startdt,
+  enddt,
+  case when cde_affiliation_type is not null then 'ZZ - ACOB PCCB' 
+   when enr.dte_effective_enr between '20-Mar-2021' and '21-Mar-2021' and id_provider_location='110022129H' then  'ZZ - ACOB PCCB' 
+       when cde_prov_type in ('01','17','20','80','81','91','97') then 'ZA - PCC'
+       else prv.dsc_prov_type end,
+  case when cde_affiliation_type is not null then 'ACOB PCCB Exclude' 
+    when enr.dte_effective_enr between '20-Mar-2021' and '21-Mar-2021' and id_provider_location='110022129H' then  'ACOB PCCB Exclude' 
+       when cde_prov_type in ('01','17','20','80','81','91','97') then 'PCC Plan' /*to differentiate between PCC and Model B enrollments, only report on PCC as a class*/ 
+       else prv.name_dsp end,
+  dsc_enroll_end,
+  cde_enroll_end, DSC_MC_REGION_CAP,
+ 
+/*04/21/2020: Yi-Ling added*/
+  case when  rc.CDE_RATE_CATEGORY  in ('RC01_Adult') then 'RC-I Adult'    
+        when  rc.CDE_RATE_CATEGORY  in ('RC01_Child') then 'RC-I Child'     
+        when  rc.CDE_RATE_CATEGORY  in ('RC02_Adult') then 'RC-II Adult'
+        when  rc.CDE_RATE_CATEGORY  in ('RC02_Child') then 'RC-II Child'
+        when  rc.CDE_RATE_CATEGORY  in ('RC9', 'RC09') then 'RC-IX'
+        when  rc.CDE_RATE_CATEGORY  in ( 'RC10') then 'RC-X' 
+        when rc2.CDE_RATE_CATEGORY in  ('RC01_Adult' ) then 'RC-I Adult'  
+        when rc2.CDE_RATE_CATEGORY in  ('RC01_Child') then 'RC-I Child'  
+        when rc2.CDE_RATE_CATEGORY in ('RC02_Adult') then 'RC-II Adult' 
+        when rc2.CDE_RATE_CATEGORY in ('RC02_Child') then 'RC-II Child' 
+        when rc2.CDE_RATE_CATEGORY in ('RC9', 'RC09')  then 'RC-IX'
+        when rc2.CDE_RATE_CATEGORY in ('RC10') then 'RC-X'
+        else 'NULL' 
+  end,
+  
+/* 04/08/2019: Linda add regions and service areas */
+  MCO_REGION, SERVICE_AREA, dsc_mc_region_enroll;
 
-    RETURN 'ACO Enrollment/Disenrollment weekly refresh completed for run date ' || :today;
+    RETURN 'ACOENR_WEEKLY_REFRESH completed. StartDate=' || TO_VARCHAR(StartDate)
+        || ', lastweek=' || TO_VARCHAR(lastweek)
+        || ', EndDate=' || TO_VARCHAR(EndDate)
+        || ', today=' || TO_VARCHAR(today)
+        || ', wh_thru_dt=' || TO_VARCHAR(wh_thru_dt)
+        || ', repdt=' || TO_VARCHAR(repdt);
 
 END;
 $$;
 
+/* SAS will call this procedure with: CALL ACOENR_WEEKLY_REFRESH(); */
 
-
-CREATE OR REPLACE TASK ACOENR_WEEKLY_REFRESH_TASK
-    WAREHOUSE = MHA_WH
-    SCHEDULE = 'USING CRON 0 9 * * WED America/New_York'
-AS
-    CALL ACOENR_WEEKLY_REFRESH();
-
-
-    ALTER TASK ACOENR_WEEKLY_REFRESH_TASK RESUME;
-
-    CALL ACOENR_WEEKLY_REFRESH();
-
-
-    SELECT COUNT(*)
-FROM ACOEnr_02_EnrDis;
-
-SELECT
-    MIN(startdt) AS min_dt,
-    MAX(enddt)   AS max_dt,
-    SUM(mbrs)    AS total_members
-FROM ACOEnr_02_EnrDis;
