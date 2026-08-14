@@ -1,0 +1,15 @@
+*.p8
+*.pem
+*.key
+.env
+*.xlsx
+*.xls
+*.log
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
