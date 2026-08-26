@@ -301,73 +301,125 @@ def scp_download_to_staging(
     """
     Download one Linux file to the local Windows staging directory and verify
     that its size exactly matches the Linux source.
+
+    Recovery behavior:
+    - Reuse an already-complete staged file when its size matches the remote.
+    - Remove only incomplete/mismatched staged files.
+    - Retry temporary SCP/network/DNS failures automatically.
+    - Preserve a successfully staged file so a later workflow rerun does not
+      need to download the same large file again.
     """
     staging_dir.mkdir(parents=True, exist_ok=True)
     local_path = staging_dir / Path(remote_path).name
 
+    scp_retry_attempts = 4
+    scp_retry_seconds = 60
+
+    # Reuse an already-complete staged file.
     if local_path.exists():
-        logging.info("Removing previous staged file: %s", local_path)
-        local_path.unlink()
+        existing_size = local_path.stat().st_size
 
-    logging.info(
-        "Downloading %s from %s to LOCAL staging: %s",
-        Path(remote_path).name,
-        server,
-        staging_dir,
-    )
+        if existing_size == expected_size:
+            logging.info(
+                "Existing staged file already verified; skipping download: "
+                "%s (%s bytes)",
+                local_path.name,
+                f"{existing_size:,}",
+            )
+            return local_path
 
-    result = run_command(
-        [
-            "scp",
-            "-i",
-            str(KEY_PATH),
-            "-o",
-            "BatchMode=yes",
-            "-o",
-            "ConnectTimeout=30",
-            f"{USER}@{server}:{remote_path}",
-            str(staging_dir),
-        ],
-        timeout=7200,
-        raise_on_error=False,
-    )
+        logging.warning(
+            "Existing staged file size mismatch; removing before retry: "
+            "%s remote=%s staged=%s",
+            local_path.name,
+            f"{expected_size:,}",
+            f"{existing_size:,}",
+        )
 
-    if result.returncode != 0:
-        detail = (result.stderr or result.stdout or "").strip()
+        try:
+            local_path.unlink()
+        except OSError as exc:
+            raise AutomationError(
+                f"Could not remove incomplete staged file {local_path}: {exc}"
+            ) from exc
+
+    last_detail = ""
+
+    for attempt in range(1, scp_retry_attempts + 1):
+        logging.info(
+            "Downloading %s from %s to LOCAL staging: %s "
+            "(SCP attempt %s of %s)",
+            Path(remote_path).name,
+            server,
+            staging_dir,
+            attempt,
+            scp_retry_attempts,
+        )
+
+        result = run_command(
+            [
+                "scp",
+                "-i",
+                str(KEY_PATH),
+                "-o",
+                "BatchMode=yes",
+                "-o",
+                "ConnectTimeout=30",
+                f"{USER}@{server}:{remote_path}",
+                str(staging_dir),
+            ],
+            timeout=7200,
+            raise_on_error=False,
+        )
+
+        if result.returncode == 0:
+            if not local_path.exists():
+                last_detail = (
+                    f"Download command returned success but staged file "
+                    f"is missing: {local_path}"
+                )
+            else:
+                actual_size = local_path.stat().st_size
+
+                if actual_size == expected_size:
+                    logging.info(
+                        "Local staged file verified: %s (%s bytes)",
+                        local_path.name,
+                        f"{actual_size:,}",
+                    )
+                    return local_path
+
+                last_detail = (
+                    f"Staged file size mismatch for {local_path.name}: "
+                    f"remote={expected_size:,}, staged={actual_size:,}"
+                )
+        else:
+            last_detail = (result.stderr or result.stdout or "").strip()
+
         if local_path.exists():
             try:
                 local_path.unlink()
             except OSError:
                 pass
-        raise AutomationError(
-            f"SCP download to local staging failed from {server}: {detail}"
-        )
 
-    if not local_path.exists():
-        raise AutomationError(
-            f"Download command completed but staged file is missing: {local_path}"
-        )
+        if attempt < scp_retry_attempts:
+            logging.warning(
+                "SCP attempt %s of %s failed for %s: %s",
+                attempt,
+                scp_retry_attempts,
+                Path(remote_path).name,
+                last_detail,
+            )
+            logging.info(
+                "Waiting %s seconds before retrying this file.",
+                scp_retry_seconds,
+            )
+            time.sleep(scp_retry_seconds)
 
-    actual_size = local_path.stat().st_size
-
-    if actual_size != expected_size:
-        try:
-            local_path.unlink()
-        except OSError:
-            pass
-        raise AutomationError(
-            f"Staged file size mismatch for {local_path.name}: "
-            f"remote={expected_size:,}, staged={actual_size:,}"
-        )
-
-    logging.info(
-        "Local staged file verified: %s (%s bytes)",
-        local_path.name,
-        f"{actual_size:,}",
+    raise AutomationError(
+        f"SCP download to local staging failed from {server} "
+        f"after {scp_retry_attempts} attempts: {last_detail}"
     )
-
-    return local_path
-
 
 def publish_to_shared_drive(
     staged_file: Path,
