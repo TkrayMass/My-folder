@@ -1,56 +1,281 @@
-CREATE OR REPLACE PROCEDURE MHTEAM.MHA.BUDGET_WEEKLY_MASTER_SP()
+USE ROLE MHA_TEAM_ROLE;
+USE WAREHOUSE MHA_WH;
+USE DATABASE MHTEAM;
+USE SCHEMA MHA;
+
+
+/*======================================================================
+  MONTHLY BUDGET MASTER PROCEDURE
+
+  PRODUCTION FLOW
+
+    STEP 1 - Build Transactions
+    STEP 2 - Combine Feeds
+    STEP 3 - Build Member Months
+    STEP 4 - Aggregate Measures
+    STEP 5 - PMPM Measures
+    STEP 6 - LTM
+    STEP 7 - Roll Forward LTM Patch Table
+    STEP 8 - Automated Monthly Budget QC
+    STEP 9 - Send QC Email to Tanya
+
+  IMPORTANT
+    - Original Steps 1-7 are preserved.
+    - Existing technical failure notification is preserved.
+    - QC is read-only.
+    - QC email helper has been independently tested.
+======================================================================*/
+
+
+CREATE OR REPLACE PROCEDURE MHTEAM.MHA.BUDGET_MONTHLY_MASTER()
 RETURNS VARCHAR
 LANGUAGE SQL
-EXECUTE AS OWNER
-AS '
+EXECUTE AS CALLER
+AS
+$$
 DECLARE
-  out_msg STRING DEFAULT '''';
-  one_msg STRING;
+    v_start_ts       TIMESTAMP_LTZ := CURRENT_TIMESTAMP();
+    v_end_ts         TIMESTAMP_LTZ;
+    v_step           NUMBER := 0;
+    v_step_name      STRING := '';
+    v_result         STRING := '';
+    v_message        STRING := '';
+
+    /*--------------------------------------------------------------
+      NEW
+      Stores detailed result returned by automated QC.
+    --------------------------------------------------------------*/
+    v_qc_result      STRING := '';
+
 BEGIN
-  /*==============================
-    MAIN PIPELINE
-  ==============================*/
 
-  CALL MHTEAM.MHA.BUDGET_WEEKLY_SNAPSHOT_L();
-  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
-  out_msg := out_msg || one_msg || ''\\n'';
+    /*------------------------------------------------------------------
+      STEP 1
+      Build source transaction feeds and establish the dynamic time config.
+    ------------------------------------------------------------------*/
+    v_step := 1;
+    v_step_name := 'BUDGET_MONTHLY_REWRITE_P1_BUILD_TRANSACTIONS';
 
-  CALL MHTEAM.MHA.BUDGET_WEEKLY_CASELOAD_DEMOGRAPHIC_t1();
-  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
-  out_msg := out_msg || one_msg || ''\\n'';
+    CALL MHTEAM.MHA.BUDGET_MONTHLY_REWRITE_P1_BUILD_TRANSACTIONS()
+      INTO :v_result;
 
-  CALL MHTEAM.MHA.BUDGET_WEEKLY_CASELOAD_PLANTYPE_t1();
-  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
-  out_msg := out_msg || one_msg || ''\\n'';
-
-  CALL MHTEAM.MHA.BUDGET_WEEKLY_CASELOAD_BENEFIT_t1();
-  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
-  out_msg := out_msg || one_msg || ''\\n'';
-
-  CALL MHTEAM.MHA.BUDGET_WEEKLY_ADDS_DEMOGRAPHIC_t1();
-  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
-  out_msg := out_msg || one_msg || ''\\n'';
-
-  CALL MHTEAM.MHA.BUDGET_WEEKLY_ADDS_PLANTYPE_L();
-  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
-  out_msg := out_msg || one_msg || ''\\n'';
-
-  CALL MHTEAM.MHA.BUDGET_WEEKLY_ADDS_BENEFITS_L();
-  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
-  out_msg := out_msg || one_msg || ''\\n'';
-
-  CALL MHTEAM.MHA.BUDGET_WEEKLY_TERMS_ALL_L();
-  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
-  out_msg := out_msg || one_msg || ''\\n'';
-
-  CALL MHTEAM.MHA.BUDGET_WEEKLY_REFRESH_CHANGES2_t1();
-  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
-  out_msg := out_msg || one_msg || ''\\n'';
-
-  CALL MHTEAM.MHA.BUDGET_WEEKLY_REFRESH_CASELOAD_L();
-  SELECT $1 INTO :one_msg FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
-  out_msg := out_msg || one_msg || ''\\n'';
+    v_message := 'Step 1 complete: ' || v_step_name || '. ' ||
+                 COALESCE(v_result, 'No return message.') || '\n';
 
 
+    /*------------------------------------------------------------------
+      STEP 2
+      Combine FFS and managed care feeds into the consolidated
+      BUDGET_MONTHLY_TRANSACTIONS table.
+    ------------------------------------------------------------------*/
+    v_step := 2;
+    v_step_name := 'BUDGET_MONTHLY_REWRITE_P2_COMBINE_FEEDS';
+
+    CALL MHTEAM.MHA.BUDGET_MONTHLY_REWRITE_P2_COMBINE_FEEDS()
+      INTO :v_result;
+
+    v_message := v_message ||
+                 'Step 2 complete: ' || v_step_name || '. ' ||
+                 COALESCE(v_result, 'No return message.') || '\n';
+
+
+    /*------------------------------------------------------------------
+      STEP 3
+      Build eligibility/member-month denominators used by PMPM reporting.
+    ------------------------------------------------------------------*/
+    v_step := 3;
+    v_step_name := 'BUDGET_MONTHLY_REWRITE_P3_BUILD_MEM_MONTHS';
+
+    CALL MHTEAM.MHA.BUDGET_MONTHLY_REWRITE_P3_BUILD_MEM_MONTHS()
+      INTO :v_result;
+
+    v_message := v_message ||
+                 'Step 3 complete: ' || v_step_name || '. ' ||
+                 COALESCE(v_result, 'No return message.') || '\n';
+
+
+    /*------------------------------------------------------------------
+      STEP 4
+      Build provider category/group/type spending and utilization measures.
+    ------------------------------------------------------------------*/
+    v_step := 4;
+    v_step_name := 'BUDGET_MONTHLY_REWRITE_P4_AGGREGATE_MEASURES';
+
+    CALL MHTEAM.MHA.BUDGET_MONTHLY_REWRITE_P4_AGGREGATE_MEASURES()
+      INTO :v_result;
+
+    v_message := v_message ||
+                 'Step 4 complete: ' || v_step_name || '. ' ||
+                 COALESCE(v_result, 'No return message.') || '\n';
+
+
+    /*------------------------------------------------------------------
+      STEP 5
+      Build monthly and quarterly PMPM measures.
+    ------------------------------------------------------------------*/
+    v_step := 5;
+    v_step_name := 'BUDGET_MONTHLY_REWRITE_P5_PMPM_MEASURES';
+
+    CALL MHTEAM.MHA.BUDGET_MONTHLY_REWRITE_P5_PMPM_MEASURES()
+      INTO :v_result;
+
+    v_message := v_message ||
+                 'Step 5 complete: ' || v_step_name || '. ' ||
+                 COALESCE(v_result, 'No return message.') || '\n';
+
+
+    /*------------------------------------------------------------------
+      STEP 6
+      Build LTM, fiscal-year rollups, variance outputs, and snapshot history.
+    ------------------------------------------------------------------*/
+    v_step := 6;
+    v_step_name := 'BUDGET_MONTHLY_REWRITE_P6_LTM';
+
+    CALL MHTEAM.MHA.BUDGET_MONTHLY_REWRITE_P6_LTM()
+      INTO :v_result;
+
+    v_message := v_message ||
+                 'Step 6 complete: ' || v_step_name || '. ' ||
+                 COALESCE(v_result, 'No return message.') || '\n';
+
+
+    /*------------------------------------------------------------------
+      STEP 7
+      Roll the LTM comparison forward and refresh the Tableau patch table.
+    ------------------------------------------------------------------*/
+    v_step := 7;
+    v_step_name := 'ROLL_FORWARD_LTM_PATCH_TABLE';
+
+    CALL MHTEAM.MHA.ROLL_FORWARD_LTM_PATCH_TABLE()
+      INTO :v_result;
+
+    v_message := v_message ||
+                 'Step 7 complete: ' || v_step_name || '. ' ||
+                 COALESCE(v_result, 'No return message.') || '\n';
+
+
+    /*==================================================================
+      NEW - STEP 8
+      Run automated Monthly Budget QC.
+
+      The QC procedure:
+        - confirms expected reporting month
+        - checks current/prior monthly data
+        - checks major provider category movement
+        - checks LTM stage and snapshot
+        - checks Tableau-facing LTM variance
+        - independently reconciles 12-month LTM dollars
+        - checks quarterly Demo and Plan outputs
+        - confirms cross-table month alignment
+    ==================================================================*/
+    v_step := 8;
+    v_step_name := 'BUDGET_MONTHLY_QC';
+
+    CALL MHTEAM.MHA.BUDGET_MONTHLY_QC()
+      INTO :v_qc_result;
+
+    v_message := v_message ||
+                 'Step 8 complete: ' || v_step_name || '.\n';
+
+
+    /*==================================================================
+      NEW - STEP 9
+      Send detailed QC result to Tanya.
+
+      This helper procedure was independently tested before being
+      incorporated into the production master.
+
+      The helper determines the subject based on:
+        PASS
+        WARNING
+        FAIL
+    ==================================================================*/
+    v_step := 9;
+    v_step_name := 'BUDGET_MONTHLY_SEND_QC_EMAIL';
+
+    CALL MHTEAM.MHA.BUDGET_MONTHLY_SEND_QC_EMAIL(:v_qc_result)
+      INTO :v_result;
+
+    v_message := v_message ||
+                 'Step 9 complete: ' || v_step_name || '. ' ||
+                 COALESCE(v_result, 'No return message.') || '\n';
+
+
+    /*------------------------------------------------------------------
+      SUCCESS
+
+      Original success logic preserved.
+      QC information is also included in the returned master result.
+    ------------------------------------------------------------------*/
+    v_end_ts := CURRENT_TIMESTAMP();
+
+    RETURN
+        'SUCCESS: Monthly Budget master refresh completed.' || '\n' ||
+        'Start: ' || TO_VARCHAR(v_start_ts) || '\n' ||
+        'End: '   || TO_VARCHAR(v_end_ts) || '\n' ||
+        'Elapsed seconds: ' ||
+        TO_VARCHAR(DATEDIFF('second', v_start_ts, v_end_ts)) || '\n\n' ||
+        v_message || '\n' ||
+        'AUTOMATED QC:' || '\n' ||
+        COALESCE(v_qc_result, 'No QC result was returned.');
+
+
+EXCEPTION
+    WHEN OTHER THEN
+        v_end_ts := CURRENT_TIMESTAMP();
+
+        /*--------------------------------------------------------------
+          FAILURE EMAIL NOTIFICATION
+
+          ORIGINAL PRODUCTION FAILURE HANDLING PRESERVED.
+
+          Sends an email immediately when any child procedure fails.
+
+          Notification integration:
+            MHA_EMAIL_NI
+
+          Recipient:
+            Tatyana.Kray@mass.gov
+
+          The email includes:
+            - failed step number
+            - failed procedure name
+            - Snowflake error code/state/message
+            - master start/end timestamps
+            - elapsed time
+            - successfully completed steps before the failure
+        --------------------------------------------------------------*/
+        CALL SYSTEM$SEND_EMAIL(
+            'MHA_EMAIL_NI',
+            'Tatyana.Kray@mass.gov',
+            'Monthly Budget Automation FAILED',
+            'FAILED: Monthly Budget master refresh stopped.' || '\n' ||
+            'Failed step: ' || TO_VARCHAR(v_step) || '\n' ||
+            'Procedure: ' || v_step_name || '\n' ||
+            'Error code: ' || TO_VARCHAR(SQLCODE) || '\n' ||
+            'SQL state: ' || SQLSTATE || '\n' ||
+            'Error message: ' || SQLERRM || '\n' ||
+            'Start: ' || TO_VARCHAR(v_start_ts) || '\n' ||
+            'End: ' || TO_VARCHAR(v_end_ts) || '\n' ||
+            'Elapsed seconds: ' ||
+            TO_VARCHAR(DATEDIFF('second', v_start_ts, v_end_ts)) || '\n\n' ||
+            'Completed steps before failure:' || '\n' ||
+            v_message
+        );
+
+        RETURN
+            'FAILED: Monthly Budget master refresh stopped.' || '\n' ||
+            'Failure email sent to Tatyana.Kray@mass.gov.' || '\n' ||
+            'Failed step: ' || TO_VARCHAR(v_step) || '\n' ||
+            'Procedure: ' || v_step_name || '\n' ||
+            'Error code: ' || TO_VARCHAR(SQLCODE) || '\n' ||
+            'SQL state: ' || SQLSTATE || '\n' ||
+            'Error message: ' || SQLERRM || '\n' ||
+            'Start: ' || TO_VARCHAR(v_start_ts) || '\n' ||
+            'End: ' || TO_VARCHAR(v_end_ts) || '\n' ||
+            'Elapsed seconds: ' ||
+            TO_VARCHAR(DATEDIFF('second', v_start_ts, v_end_ts)) || '\n\n' ||
+            'Completed steps before failure:' || '\n' ||
+            v_message;
 END;
-';
+$$;
