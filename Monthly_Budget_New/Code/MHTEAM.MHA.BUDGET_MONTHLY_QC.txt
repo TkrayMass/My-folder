@@ -1,0 +1,898 @@
+CREATE OR REPLACE PROCEDURE "BUDGET_MONTHLY_QC"()
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS CALLER
+AS '
+DECLARE
+
+    /*--------------------------------------------------------------
+      Reporting periods
+    --------------------------------------------------------------*/
+    v_expected_month       VARCHAR;
+    v_prior_month          VARCHAR;
+    v_ltm_start_month      VARCHAR;
+    v_transaction_latest   VARCHAR;
+
+
+    /*--------------------------------------------------------------
+      Grand Total
+    --------------------------------------------------------------*/
+    v_gt_first             VARCHAR;
+    v_gt_latest            VARCHAR;
+    v_gt_current_rows      NUMBER;
+    v_gt_prior_rows        NUMBER;
+    v_gt_null_pmpm         NUMBER;
+    v_gt_null_members      NUMBER;
+    v_gt_null_paid         NUMBER;
+
+
+    /*--------------------------------------------------------------
+      Monthly overall comparison
+    --------------------------------------------------------------*/
+    v_prev_spend           NUMBER;
+    v_curr_spend           NUMBER;
+    v_spend_change_pct     NUMBER;
+
+    v_prev_utilizers       NUMBER;
+    v_curr_utilizers       NUMBER;
+    v_util_change_pct      NUMBER;
+
+    v_prev_ppu             NUMBER;
+    v_curr_ppu             NUMBER;
+    v_ppu_change_pct       NUMBER;
+
+    v_large_category_moves NUMBER;
+
+
+    /*--------------------------------------------------------------
+      LTM
+    --------------------------------------------------------------*/
+    v_ltm_first            VARCHAR;
+    v_ltm_latest           VARCHAR;
+    v_ltm_rows             NUMBER;
+    v_ltm_current_rows     NUMBER;
+
+    v_snap_first           VARCHAR;
+    v_snap_latest          VARCHAR;
+    v_snap_rows            NUMBER;
+    v_snap_current_rows    NUMBER;
+
+    v_patch_rows           NUMBER;
+
+    v_ltm_source_amount    NUMBER;
+    v_ltm_stage_amount     NUMBER;
+    v_ltm_difference       NUMBER;
+    v_ltm_month_count      NUMBER;
+
+    v_ltm_prev             NUMBER;
+    v_ltm_curr             NUMBER;
+    v_ltm_variance_amt     NUMBER;
+    v_ltm_variance_pct     NUMBER;
+    v_large_ltm_moves      NUMBER;
+
+
+    /*--------------------------------------------------------------
+      Quarterly
+    --------------------------------------------------------------*/
+    v_demo_latest_qtr      VARCHAR;
+    v_demo_rows            NUMBER;
+    v_demo_null_spend      NUMBER;
+    v_demo_null_members    NUMBER;
+    v_demo_null_pmpm       NUMBER;
+
+    v_plan_latest_qtr      VARCHAR;
+    v_plan_rows            NUMBER;
+    v_plan_null_spend      NUMBER;
+    v_plan_null_members    NUMBER;
+    v_plan_null_pmpm       NUMBER;
+
+
+    /*--------------------------------------------------------------
+      Overall QC
+    --------------------------------------------------------------*/
+    v_fail_count           NUMBER DEFAULT 0;
+    v_warning_count        NUMBER DEFAULT 0;
+
+    v_status               VARCHAR;
+    v_message              VARCHAR DEFAULT '''';
+
+BEGIN
+
+    /*==============================================================
+      DETERMINE REPORTING PERIODS
+    ==============================================================*/
+
+    SELECT TO_CHAR(MAX(END_DATE), ''YYYYMM'')
+      INTO :v_expected_month
+    FROM MHTEAM.MHA.BUDGET_MONTHLY_TIME_CONFIG;
+
+
+    v_prior_month :=
+        TO_VARCHAR(
+            DATEADD(
+                MONTH,
+                -1,
+                TO_DATE(v_expected_month || ''01'', ''YYYYMMDD'')
+            ),
+            ''YYYYMM''
+        );
+
+
+    v_ltm_start_month :=
+        TO_VARCHAR(
+            DATEADD(
+                MONTH,
+                -11,
+                TO_DATE(v_expected_month || ''01'', ''YYYYMMDD'')
+            ),
+            ''YYYYMM''
+        );
+
+
+    v_message :=
+          ''MONTHLY BUDGET AUTOMATED QC - FINAL''
+        || CHAR(10)
+        || ''==================================================''
+        || CHAR(10)
+        || ''Expected reporting month: '' || v_expected_month
+        || CHAR(10)
+        || ''Prior reporting month:    '' || v_prior_month
+        || CHAR(10)
+        || ''Expected LTM period:       ''
+        || v_ltm_start_month || '' - '' || v_expected_month
+        || CHAR(10)
+        || CHAR(10);
+
+
+    /*==============================================================
+      1. GRAND TOTAL / CURRENT MONTH COMPLETENESS
+    ==============================================================*/
+
+    SELECT
+        MIN(MONTH),
+        MAX(MONTH),
+        COUNT_IF(MONTH = :v_expected_month),
+        COUNT_IF(MONTH = :v_prior_month),
+        COUNT_IF(
+            MONTH = :v_expected_month
+            AND PMPM IS NULL
+        ),
+        COUNT_IF(
+            MONTH = :v_expected_month
+            AND MEMBERS_IN_MONTH IS NULL
+        ),
+        COUNT_IF(
+            MONTH = :v_expected_month
+            AND SUM_AMT_PAID IS NULL
+        )
+    INTO
+        :v_gt_first,
+        :v_gt_latest,
+        :v_gt_current_rows,
+        :v_gt_prior_rows,
+        :v_gt_null_pmpm,
+        :v_gt_null_members,
+        :v_gt_null_paid
+    FROM MHTEAM.MHA.BUDGET_MONTHLY_GRAND_TOTAL;
+
+
+    IF (
+           v_gt_latest <> v_expected_month
+        OR v_gt_current_rows = 0
+        OR v_gt_null_pmpm > 0
+        OR v_gt_null_members > 0
+        OR v_gt_null_paid > 0
+    ) THEN
+
+        v_fail_count := v_fail_count + 1;
+
+        v_message := v_message
+            || ''1. CURRENT MONTH / GRAND TOTAL''
+            || CHAR(10)
+            || ''   STATUS: FAIL''
+            || CHAR(10);
+
+    ELSE
+
+        v_message := v_message
+            || ''1. CURRENT MONTH / GRAND TOTAL''
+            || CHAR(10)
+            || ''   Latest month: '' || v_gt_latest
+            || CHAR(10)
+            || ''   STATUS: PASS''
+            || CHAR(10);
+
+    END IF;
+
+    v_message := v_message || CHAR(10);
+
+
+    /*==============================================================
+      2. MONTHLY CURRENT VS PRIOR MONTH
+
+      Mirrors manual review of:
+        Monthly Spend
+        Monthly Utilizers
+        Monthly Spend per Utilizer
+    ==============================================================*/
+
+    SELECT
+
+        MAX(
+            CASE WHEN MONTH = :v_prior_month
+                 THEN TOTAL_PAID END
+        ),
+
+        MAX(
+            CASE WHEN MONTH = :v_expected_month
+                 THEN TOTAL_PAID END
+        ),
+
+        MAX(
+            CASE WHEN MONTH = :v_prior_month
+                 THEN TOTAL_UNIQUE_MEMBERS END
+        ),
+
+        MAX(
+            CASE WHEN MONTH = :v_expected_month
+                 THEN TOTAL_UNIQUE_MEMBERS END
+        ),
+
+        MAX(
+            CASE WHEN MONTH = :v_prior_month
+                 THEN PAID_PER_UTILIZER END
+        ),
+
+        MAX(
+            CASE WHEN MONTH = :v_expected_month
+                 THEN PAID_PER_UTILIZER END
+        )
+
+    INTO
+        :v_prev_spend,
+        :v_curr_spend,
+        :v_prev_utilizers,
+        :v_curr_utilizers,
+        :v_prev_ppu,
+        :v_curr_ppu
+
+    FROM MHTEAM.MHA.BUDGET_MONTHLY_AMT_STAGE5
+
+    WHERE GRANULARITY = ''Total Programmatic Spend''
+      AND MONTH IN (:v_expected_month, :v_prior_month);
+
+
+    v_spend_change_pct :=
+        ROUND(
+            100 * (v_curr_spend - v_prev_spend)
+            / NULLIF(ABS(v_prev_spend),0),
+            2
+        );
+
+
+    v_util_change_pct :=
+        ROUND(
+            100 * (v_curr_utilizers - v_prev_utilizers)
+            / NULLIF(ABS(v_prev_utilizers),0),
+            2
+        );
+
+
+    v_ppu_change_pct :=
+        ROUND(
+            100 * (v_curr_ppu - v_prev_ppu)
+            / NULLIF(ABS(v_prev_ppu),0),
+            2
+        );
+
+
+    IF (
+           v_curr_spend IS NULL
+        OR v_curr_utilizers IS NULL
+        OR v_curr_ppu IS NULL
+    ) THEN
+
+        v_fail_count := v_fail_count + 1;
+
+        v_message := v_message
+            || ''2. MONTHLY CURRENT VS PRIOR''
+            || CHAR(10)
+            || ''   STATUS: FAIL - current monthly data missing''
+            || CHAR(10);
+
+    ELSE
+
+        /*
+          25% is a REVIEW threshold only.
+          Recent claims months may legitimately be incomplete.
+        */
+
+        IF (
+               ABS(COALESCE(v_spend_change_pct,0)) >= 25
+            OR ABS(COALESCE(v_util_change_pct,0)) >= 25
+            OR ABS(COALESCE(v_ppu_change_pct,0)) >= 25
+        ) THEN
+
+            v_warning_count := v_warning_count + 1;
+
+            v_status := ''WARNING - REVIEW'';
+
+        ELSE
+
+            v_status := ''PASS'';
+
+        END IF;
+
+
+        v_message := v_message
+            || ''2. MONTHLY CURRENT VS PRIOR''
+            || CHAR(10)
+            || ''   Spend: ''
+            || TO_VARCHAR(ROUND(v_prev_spend,2))
+            || '' -> ''
+            || TO_VARCHAR(ROUND(v_curr_spend,2))
+            || '' ('' || COALESCE(TO_VARCHAR(v_spend_change_pct),''N/A'') || ''%)''
+            || CHAR(10)
+            || ''   Utilizers: ''
+            || TO_VARCHAR(v_prev_utilizers)
+            || '' -> ''
+            || TO_VARCHAR(v_curr_utilizers)
+            || '' ('' || COALESCE(TO_VARCHAR(v_util_change_pct),''N/A'') || ''%)''
+            || CHAR(10)
+            || ''   Paid/Utilizer: ''
+            || TO_VARCHAR(ROUND(v_prev_ppu,2))
+            || '' -> ''
+            || TO_VARCHAR(ROUND(v_curr_ppu,2))
+            || '' ('' || COALESCE(TO_VARCHAR(v_ppu_change_pct),''N/A'') || ''%)''
+            || CHAR(10)
+            || ''   STATUS: '' || v_status
+            || CHAR(10);
+
+    END IF;
+
+    v_message := v_message || CHAR(10);
+
+
+    /*==============================================================
+      3. MAJOR PROVIDER CATEGORY REASONABLENESS
+
+      Count major categories with >=25% month-over-month movement.
+
+      This is REVIEW, not FAIL.
+    ==============================================================*/
+
+    SELECT COUNT(*)
+      INTO :v_large_category_moves
+    FROM (
+
+        SELECT
+            GROUP_REPORT_LABEL,
+
+            MAX(
+                CASE WHEN MONTH = :v_prior_month
+                     THEN TOTAL_PAID END
+            ) AS PREVIOUS_AMOUNT,
+
+            MAX(
+                CASE WHEN MONTH = :v_expected_month
+                     THEN TOTAL_PAID END
+            ) AS CURRENT_AMOUNT
+
+        FROM MHTEAM.MHA.BUDGET_MONTHLY_AMT_STAGE4
+
+        WHERE MONTH IN (:v_expected_month, :v_prior_month)
+          AND SORT_ORDER_GROUP = 1000
+
+        GROUP BY GROUP_REPORT_LABEL
+
+    ) x
+
+    WHERE PREVIOUS_AMOUNT IS NOT NULL
+      AND CURRENT_AMOUNT IS NOT NULL
+      AND ABS(
+            (CURRENT_AMOUNT - PREVIOUS_AMOUNT)
+            / NULLIF(ABS(PREVIOUS_AMOUNT),0)
+          ) >= 0.25;
+
+
+    IF (v_large_category_moves > 0) THEN
+
+        v_warning_count := v_warning_count + 1;
+
+        v_message := v_message
+            || ''3. MAJOR PROVIDER CATEGORY REVIEW''
+            || CHAR(10)
+            || ''   Categories with >=25% movement: ''
+            || v_large_category_moves
+            || CHAR(10)
+            || ''   STATUS: WARNING - REVIEW''
+            || CHAR(10);
+
+    ELSE
+
+        v_message := v_message
+            || ''3. MAJOR PROVIDER CATEGORY REVIEW''
+            || CHAR(10)
+            || ''   Categories with >=25% movement: 0''
+            || CHAR(10)
+            || ''   STATUS: PASS''
+            || CHAR(10);
+
+    END IF;
+
+    v_message := v_message || CHAR(10);
+
+
+    /*==============================================================
+      4. LTM STAGE
+    ==============================================================*/
+
+    SELECT
+        MIN(MONTH),
+        MAX(MONTH),
+        COUNT(*),
+        COUNT_IF(MONTH = :v_expected_month)
+
+    INTO
+        :v_ltm_first,
+        :v_ltm_latest,
+        :v_ltm_rows,
+        :v_ltm_current_rows
+
+    FROM MHTEAM.MHA.BUDGET_MONTHLY_LTM_STAGE;
+
+
+    IF (
+           v_ltm_latest <> v_expected_month
+        OR v_ltm_current_rows = 0
+    ) THEN
+
+        v_fail_count := v_fail_count + 1;
+        v_status := ''FAIL'';
+
+    ELSE
+
+        v_status := ''PASS'';
+
+    END IF;
+
+
+    v_message := v_message
+        || ''4. LTM STAGE''
+        || CHAR(10)
+        || ''   Latest month: '' || v_ltm_latest
+        || CHAR(10)
+        || ''   Current rows: '' || v_ltm_current_rows
+        || CHAR(10)
+        || ''   STATUS: '' || v_status
+        || CHAR(10)
+        || CHAR(10);
+
+
+    /*==============================================================
+      5. LTM SNAPSHOT HISTORY
+    ==============================================================*/
+
+    SELECT
+        MIN(SNAPSHOT_MONTH),
+        MAX(SNAPSHOT_MONTH),
+        COUNT(*),
+        COUNT_IF(SNAPSHOT_MONTH = :v_expected_month)
+
+    INTO
+        :v_snap_first,
+        :v_snap_latest,
+        :v_snap_rows,
+        :v_snap_current_rows
+
+    FROM MHTEAM.MHA.BUDGET_MONTHLY_LTM_SNAPSHOT_HIST;
+
+
+    IF (
+           v_snap_latest <> v_expected_month
+        OR v_snap_current_rows = 0
+    ) THEN
+
+        v_fail_count := v_fail_count + 1;
+        v_status := ''FAIL'';
+
+    ELSE
+
+        v_status := ''PASS'';
+
+    END IF;
+
+
+    v_message := v_message
+        || ''5. LTM SNAPSHOT HISTORY''
+        || CHAR(10)
+        || ''   Latest snapshot: '' || v_snap_latest
+        || CHAR(10)
+        || ''   Current rows: '' || v_snap_current_rows
+        || CHAR(10)
+        || ''   STATUS: '' || v_status
+        || CHAR(10)
+        || CHAR(10);
+
+
+    /*==============================================================
+      6. TABLEAU-FACING LTM VARIANCE OUTPUT
+    ==============================================================*/
+
+    SELECT COUNT(*)
+      INTO :v_patch_rows
+    FROM MHTEAM.MHA.BUDGET_LTM_DOS_SPEND_PATCH_202510_FINAL;
+
+
+    IF (v_patch_rows = 0) THEN
+
+        v_fail_count := v_fail_count + 1;
+
+        v_message := v_message
+            || ''6. LTM VARIANCE OUTPUT''
+            || CHAR(10)
+            || ''   STATUS: FAIL - no variance data''
+            || CHAR(10)
+            || CHAR(10);
+
+    ELSE
+
+        SELECT
+            LTM_PREV,
+            LTM_CURR,
+            VARIANCE_AMT,
+            VARIANCE_PCT
+
+        INTO
+            :v_ltm_prev,
+            :v_ltm_curr,
+            :v_ltm_variance_amt,
+            :v_ltm_variance_pct
+
+        FROM MHTEAM.MHA.BUDGET_LTM_DOS_SPEND_PATCH_202510_FINAL
+
+        WHERE PROVIDER_CATEGORY = ''Programmatic Spend''
+          AND PROVIDER_GROUP = ''Total FFS + Capitation''
+
+        LIMIT 1;
+
+
+        SELECT COUNT(*)
+          INTO :v_large_ltm_moves
+
+        FROM MHTEAM.MHA.BUDGET_LTM_DOS_SPEND_PATCH_202510_FINAL
+
+        WHERE LTM_PREV IS NOT NULL
+          AND LTM_CURR IS NOT NULL
+          AND ABS(VARIANCE_PCT) >= 0.25;
+
+
+        IF (
+               v_ltm_prev IS NULL
+            OR v_ltm_curr IS NULL
+        ) THEN
+
+            v_fail_count := v_fail_count + 1;
+            v_status := ''FAIL'';
+
+        ELSEIF (v_large_ltm_moves > 0) THEN
+
+            v_warning_count := v_warning_count + 1;
+            v_status := ''WARNING - REVIEW'';
+
+        ELSE
+
+            v_status := ''PASS'';
+
+        END IF;
+
+
+        v_message := v_message
+            || ''6. LTM VARIANCE REVIEW''
+            || CHAR(10)
+            || ''   Previous LTM: ''
+            || TO_VARCHAR(ROUND(v_ltm_prev,2))
+            || CHAR(10)
+            || ''   Current LTM:  ''
+            || TO_VARCHAR(ROUND(v_ltm_curr,2))
+            || CHAR(10)
+            || ''   Variance:     ''
+            || TO_VARCHAR(ROUND(v_ltm_variance_amt,2))
+            || CHAR(10)
+            || ''   Variance %:   ''
+            || TO_VARCHAR(ROUND(v_ltm_variance_pct * 100,2))
+            || ''%''
+            || CHAR(10)
+            || ''   Large LTM category movements: ''
+            || v_large_ltm_moves
+            || CHAR(10)
+            || ''   STATUS: '' || v_status
+            || CHAR(10)
+            || CHAR(10);
+
+    END IF;
+
+
+    /*==============================================================
+      7. INDEPENDENT 12-MONTH LTM RECONCILIATION
+    ==============================================================*/
+
+    SELECT
+        MAX(TO_CHAR(FIRST_DT_OF_MONTH,''YYYYMM''))
+      INTO :v_transaction_latest
+    FROM MHTEAM.MHA.BUDGET_MONTHLY_TRANSACTIONS;
+
+
+    SELECT
+        COUNT(
+            DISTINCT TO_CHAR(FIRST_DT_OF_MONTH,''YYYYMM'')
+        ),
+        COALESCE(SUM(AMT_PAID),0)
+
+    INTO
+        :v_ltm_month_count,
+        :v_ltm_source_amount
+
+    FROM MHTEAM.MHA.BUDGET_MONTHLY_TRANSACTIONS
+
+    WHERE TO_CHAR(FIRST_DT_OF_MONTH,''YYYYMM'')
+          BETWEEN :v_ltm_start_month
+              AND :v_expected_month;
+
+
+    SELECT
+        COALESCE(SUM(SUM_AMT_PAID),0)
+
+    INTO :v_ltm_stage_amount
+
+    FROM MHTEAM.MHA.BUDGET_MONTHLY_LTM_STAGE
+
+    WHERE MONTH = :v_expected_month
+      AND PROVIDER_CATEGORY = ''Programmatic Spend''
+      AND PROVIDER_GROUP = ''Total FFS + Capitation'';
+
+
+    v_ltm_difference :=
+        ABS(v_ltm_source_amount - v_ltm_stage_amount);
+
+
+    IF (
+           v_transaction_latest <> v_expected_month
+        OR v_ltm_month_count <> 12
+        OR v_ltm_stage_amount = 0
+        OR v_ltm_difference > 0.01
+    ) THEN
+
+        v_fail_count := v_fail_count + 1;
+        v_status := ''FAIL'';
+
+    ELSE
+
+        v_status := ''PASS'';
+
+    END IF;
+
+
+    v_message := v_message
+        || ''7. INDEPENDENT LTM RECONCILIATION''
+        || CHAR(10)
+        || ''   LTM period: ''
+        || v_ltm_start_month || '' - '' || v_expected_month
+        || CHAR(10)
+        || ''   Months found: '' || v_ltm_month_count
+        || CHAR(10)
+        || ''   Source amount: ''
+        || TO_VARCHAR(ROUND(v_ltm_source_amount,2))
+        || CHAR(10)
+        || ''   LTM amount:    ''
+        || TO_VARCHAR(ROUND(v_ltm_stage_amount,2))
+        || CHAR(10)
+        || ''   Difference:    ''
+        || TO_VARCHAR(ROUND(v_ltm_difference,2))
+        || CHAR(10)
+        || ''   STATUS: '' || v_status
+        || CHAR(10)
+        || CHAR(10);
+
+
+    /*==============================================================
+      8. QUARTERLY DEMOGRAPHIC OUTPUT
+    ==============================================================*/
+
+    SELECT MAX(QTR_SFY)
+      INTO :v_demo_latest_qtr
+    FROM MHTEAM.MHA.BUDGET_MONTHLY_PMPM_DEMO_QTR;
+
+
+    SELECT
+        COUNT(*),
+        COUNT_IF(SUM_AMT_PAID IS NULL),
+        COUNT_IF(MEMBERS_IN_MONTH IS NULL),
+        COUNT_IF(PMPM_QTR IS NULL)
+
+    INTO
+        :v_demo_rows,
+        :v_demo_null_spend,
+        :v_demo_null_members,
+        :v_demo_null_pmpm
+
+    FROM MHTEAM.MHA.BUDGET_MONTHLY_PMPM_DEMO_QTR
+
+    WHERE QTR_SFY = :v_demo_latest_qtr;
+
+
+    IF (
+           v_demo_rows = 0
+        OR v_demo_null_spend > 0
+        OR v_demo_null_members > 0
+        OR v_demo_null_pmpm > 0
+    ) THEN
+
+        v_fail_count := v_fail_count + 1;
+        v_status := ''FAIL'';
+
+    ELSE
+
+        v_status := ''PASS'';
+
+    END IF;
+
+
+    v_message := v_message
+        || ''8. QUARTERLY DEMOGRAPHIC OUTPUT''
+        || CHAR(10)
+        || ''   Latest quarter: '' || v_demo_latest_qtr
+        || CHAR(10)
+        || ''   Rows: '' || v_demo_rows
+        || CHAR(10)
+        || ''   STATUS: '' || v_status
+        || CHAR(10)
+        || CHAR(10);
+
+
+    /*==============================================================
+      9. QUARTERLY PLAN OUTPUT
+    ==============================================================*/
+
+    SELECT MAX(QTR_SFY)
+      INTO :v_plan_latest_qtr
+    FROM MHTEAM.MHA.BUDGET_MONTHLY_PMPM_PLAN_QTR;
+
+
+    SELECT
+        COUNT(*),
+        COUNT_IF(SUM_AMT_PAID IS NULL),
+        COUNT_IF(MEMBERS_IN_MONTH IS NULL),
+        COUNT_IF(PMPM_QTR IS NULL)
+
+    INTO
+        :v_plan_rows,
+        :v_plan_null_spend,
+        :v_plan_null_members,
+        :v_plan_null_pmpm
+
+    FROM MHTEAM.MHA.BUDGET_MONTHLY_PMPM_PLAN_QTR
+
+    WHERE QTR_SFY = :v_plan_latest_qtr;
+
+
+    IF (
+           v_plan_rows = 0
+        OR v_plan_null_spend > 0
+        OR v_plan_null_members > 0
+        OR v_plan_null_pmpm > 0
+    ) THEN
+
+        v_fail_count := v_fail_count + 1;
+        v_status := ''FAIL'';
+
+    ELSE
+
+        v_status := ''PASS'';
+
+    END IF;
+
+
+    v_message := v_message
+        || ''9. QUARTERLY PLAN OUTPUT''
+        || CHAR(10)
+        || ''   Latest quarter: '' || v_plan_latest_qtr
+        || CHAR(10)
+        || ''   Rows: '' || v_plan_rows
+        || CHAR(10)
+        || ''   STATUS: '' || v_status
+        || CHAR(10)
+        || CHAR(10);
+
+
+    /*==============================================================
+      10. CROSS-TABLE MONTH ALIGNMENT
+    ==============================================================*/
+
+    IF (
+           v_gt_latest = v_expected_month
+       AND v_ltm_latest = v_expected_month
+       AND v_snap_latest = v_expected_month
+    ) THEN
+
+        v_status := ''PASS'';
+
+    ELSE
+
+        /*
+          Individual failures have already been counted above,
+          so don''t double-count them here.
+        */
+
+        v_status := ''FAIL'';
+
+    END IF;
+
+
+    v_message := v_message
+        || ''10. CROSS-TABLE MONTH ALIGNMENT''
+        || CHAR(10)
+        || ''    GRAND_TOTAL:   '' || v_gt_latest
+        || CHAR(10)
+        || ''    LTM_STAGE:     '' || v_ltm_latest
+        || CHAR(10)
+        || ''    SNAPSHOT_HIST: '' || v_snap_latest
+        || CHAR(10)
+        || ''    STATUS: '' || v_status
+        || CHAR(10)
+        || CHAR(10);
+
+
+    /*==============================================================
+      FINAL STATUS
+    ==============================================================*/
+
+    IF (v_fail_count > 0) THEN
+
+        v_status := ''FAIL - NOT READY FOR TABLEAU'';
+
+    ELSEIF (v_warning_count > 0) THEN
+
+        v_status := ''WARNING - REVIEW BEFORE TABLEAU'';
+
+    ELSE
+
+        v_status := ''PASS - READY FOR TABLEAU'';
+
+    END IF;
+
+
+    RETURN
+          ''==================================================''
+        || CHAR(10)
+        || v_status
+        || CHAR(10)
+        || ''==================================================''
+        || CHAR(10)
+        || ''Failed checks:  '' || v_fail_count
+        || CHAR(10)
+        || ''Warnings:       '' || v_warning_count
+        || CHAR(10)
+        || CHAR(10)
+        || v_message;
+
+
+EXCEPTION
+
+    WHEN OTHER THEN
+
+        RETURN
+              ''==================================================''
+            || CHAR(10)
+            || ''QC PROCEDURE ERROR - NOT READY FOR TABLEAU''
+            || CHAR(10)
+            || ''==================================================''
+            || CHAR(10)
+            || ''SQLCODE: '' || SQLCODE
+            || CHAR(10)
+            || ''SQLSTATE: '' || SQLSTATE
+            || CHAR(10)
+            || ''ERROR: '' || SQLERRM;
+
+END;
+';
