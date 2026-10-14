@@ -19,6 +19,10 @@ The old Wednesday 09:00 SAS retry job and old Windows generation/transfer action
 are no longer scheduled. Windows task names are retained, with replacement actions.
 The Thursday schedule starts October 15, 2026. No Z-drive transfer is required.
 
+## Illustrated process guide
+
+[Download the process guide (PDF)](docs/ACO_Weekly_Enrollment_Process_Guide.pdf) - 10 pages with code-labeled workflow diagrams, the weekly timeline, QC rules, and six actual QC screenshot excerpts.
+
 ## Reading order
 
 1. [Architecture](docs/ARCHITECTURE.md)
@@ -49,3 +53,4 @@ Credentials, private baseline archives, report workbooks, member data, runtime l
 and receipts are not included. The private SAS credential include is an external
 dependency; provision it securely on the server. Internal paths and contacts are
 retained for organizational operations; review configuration before reuse.
+

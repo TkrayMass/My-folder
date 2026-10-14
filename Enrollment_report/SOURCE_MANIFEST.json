@@ -4,12 +4,17 @@
     {
       "path": ".gitattributes",
       "role": "package validation/support",
-      "sha256": "8b209f6984cc577c2a116f6739d75b2104a97ef5358287eec6eed3150eea2150"
+      "sha256": "cb26431089f0e961ebdb4036fbeed5b44574e7d38f76444e49ad539724add6a5"
     },
     {
       "path": ".gitignore",
       "sha256": "d134dae9ce732fdc2a5cebf95b23def56585b9f6f286b9742b8ed8ee967ac78e",
       "role": "package documentation/support"
+    },
+    {
+      "path": "docs/ACO_Weekly_Enrollment_Process_Guide.pdf",
+      "role": "package validation/support",
+      "sha256": "c0e74d4b15676baa1acb4fe7e121a6e2b741ed5634c4a9547e60536dc453cca5"
     },
     {
       "path": "docs/ARCHITECTURE.md",
@@ -107,7 +112,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "d8b00822e5dbf9704fa7cd52e59f3184cfdad5bce8d657538d097b2ceb4da3cb",
+      "sha256": "38865354617f2697f1f45b7b8452edc53d4bbb53174c0bee8ef5fc8794649e20",
       "role": "package documentation/support"
     },
     {
