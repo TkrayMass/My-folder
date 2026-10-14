@@ -1,0 +1,1125 @@
+{
+  "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Monthly_enrollment_report\\ReportTestMonthly-20261007_REGXSA.xlsx",
+  "bytes": 36488766,
+  "sheets": [
+    {
+      "sheet": "Summary",
+      "dimension": "A1:CM129",
+      "pane": {
+        "ySplit": "7",
+        "topLeftCell": "A8",
+        "activePane": "bottomLeft",
+        "state": "frozenSplit"
+      },
+      "columns": [
+        {
+          "min": "1",
+          "max": "1",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "2",
+          "max": "2",
+          "width": "11.453125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "3",
+          "max": "3",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "4",
+          "max": "91",
+          "width": "9.81640625",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "92",
+          "max": "16384",
+          "width": "8.7265625",
+          "style": "1"
+        }
+      ],
+      "top_row_heights": [
+        {
+          "r": "1",
+          "spans": "1:91",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "2",
+          "spans": "1:91",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "3",
+          "spans": "1:91",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "4",
+          "spans": "1:91",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "5",
+          "spans": "1:91",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "6",
+          "spans": "1:91",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "7",
+          "spans": "1:91",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "8",
+          "spans": "1:91",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        }
+      ]
+    },
+    {
+      "sheet": "Summary-Enroll-Region",
+      "dimension": "A1:CN137",
+      "pane": {
+        "ySplit": "1",
+        "topLeftCell": "A2",
+        "activePane": "bottomLeft",
+        "state": "frozenSplit"
+      },
+      "columns": [
+        {
+          "min": "1",
+          "max": "1",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "2",
+          "max": "3",
+          "width": "11.453125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "4",
+          "max": "4",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "5",
+          "max": "92",
+          "width": "9.81640625",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "93",
+          "max": "16384",
+          "width": "8.7265625",
+          "style": "1"
+        }
+      ],
+      "top_row_heights": [
+        {
+          "r": "1",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "2",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "3",
+          "spans": "1:92",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "4",
+          "spans": "1:92",
+          "ht": "36",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "5",
+          "spans": "1:92",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "6",
+          "spans": "1:92",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "7",
+          "spans": "1:92",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "8",
+          "spans": "1:92",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        }
+      ]
+    },
+    {
+      "sheet": "Summary-Caseload-Reg x SA",
+      "dimension": "A1:CP1383",
+      "pane": {
+        "ySplit": "6",
+        "topLeftCell": "A7",
+        "activePane": "bottomLeft",
+        "state": "frozenSplit"
+      },
+      "columns": [
+        {
+          "min": "1",
+          "max": "1",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "2",
+          "max": "4",
+          "width": "11.453125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "5",
+          "max": "6",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "7",
+          "max": "94",
+          "width": "9.81640625",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "95",
+          "max": "16384",
+          "width": "8.7265625",
+          "style": "1"
+        }
+      ],
+      "top_row_heights": [
+        {
+          "r": "1",
+          "spans": "1:94",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "2",
+          "spans": "1:94",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "3",
+          "spans": "1:94",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "4",
+          "spans": "1:94",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "5",
+          "spans": "1:94",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "6",
+          "spans": "1:94",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "7",
+          "spans": "1:94",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "8",
+          "spans": "1:94",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        }
+      ]
+    },
+    {
+      "sheet": "Summary-Enroll-Reg X SA",
+      "dimension": "A1:CR6124",
+      "pane": null,
+      "columns": [
+        {
+          "min": "1",
+          "max": "2",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "3",
+          "max": "5",
+          "width": "11.453125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "6",
+          "max": "8",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "9",
+          "max": "96",
+          "width": "9.81640625",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "97",
+          "max": "16384",
+          "width": "8.7265625",
+          "style": "1"
+        }
+      ],
+      "top_row_heights": [
+        {
+          "r": "1",
+          "spans": "1:96",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "2",
+          "spans": "1:96",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "3",
+          "spans": "1:96",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "4",
+          "spans": "1:96",
+          "ht": "36",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "5",
+          "spans": "1:96",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "6",
+          "spans": "1:96",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "7",
+          "spans": "1:96",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "8",
+          "spans": "1:96",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        }
+      ]
+    },
+    {
+      "sheet": "Summary-DisEnroll-Reg X SA",
+      "dimension": "A1:CR8419",
+      "pane": {
+        "ySplit": "1",
+        "topLeftCell": "A2",
+        "activePane": "bottomLeft",
+        "state": "frozenSplit"
+      },
+      "columns": [
+        {
+          "min": "1",
+          "max": "2",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "3",
+          "max": "5",
+          "width": "11.453125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "6",
+          "max": "8",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "9",
+          "max": "96",
+          "width": "9.81640625",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "97",
+          "max": "16384",
+          "width": "8.7265625",
+          "style": "1"
+        }
+      ],
+      "top_row_heights": [
+        {
+          "r": "1",
+          "spans": "1:96",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "2",
+          "spans": "1:96",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "3",
+          "spans": "1:96",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "4",
+          "spans": "1:96",
+          "ht": "36",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "5",
+          "spans": "1:96",
+          "ht": "36",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "6",
+          "spans": "1:96",
+          "ht": "36",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "7",
+          "spans": "1:96",
+          "ht": "36",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "8",
+          "spans": "1:96",
+          "ht": "36",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        }
+      ]
+    },
+    {
+      "sheet": "Caseload",
+      "dimension": "A1:CN207",
+      "pane": {
+        "ySplit": "1",
+        "topLeftCell": "A2",
+        "activePane": "bottomLeft",
+        "state": "frozenSplit"
+      },
+      "columns": [
+        {
+          "min": "1",
+          "max": "1",
+          "width": "16.36328125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "2",
+          "max": "2",
+          "width": "11.453125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "3",
+          "max": "4",
+          "width": "16.36328125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "5",
+          "max": "92",
+          "width": "9.81640625",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "93",
+          "max": "16384",
+          "width": "8.7265625",
+          "style": "1"
+        }
+      ],
+      "top_row_heights": [
+        {
+          "r": "1",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "2",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "3",
+          "spans": "1:92",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "4",
+          "spans": "1:92",
+          "ht": "36",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "5",
+          "spans": "1:92",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "6",
+          "spans": "1:92",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "7",
+          "spans": "1:92",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "8",
+          "spans": "1:92",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        }
+      ]
+    },
+    {
+      "sheet": "Caseload-Reg X SA",
+      "dimension": "A1:CQ6946",
+      "pane": null,
+      "columns": [
+        {
+          "min": "1",
+          "max": "1",
+          "width": "16.36328125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "2",
+          "max": "4",
+          "width": "11.453125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "5",
+          "max": "6",
+          "width": "16.36328125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "7",
+          "max": "7",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "8",
+          "max": "95",
+          "width": "9.81640625",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "96",
+          "max": "16384",
+          "width": "8.7265625",
+          "style": "1"
+        }
+      ],
+      "top_row_heights": [
+        {
+          "r": "1",
+          "spans": "1:95",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "2",
+          "spans": "1:95",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "3",
+          "spans": "1:95",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "4",
+          "spans": "1:95",
+          "ht": "36",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "5",
+          "spans": "1:95",
+          "ht": "36",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "6",
+          "spans": "1:95",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "7",
+          "spans": "1:95",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "8",
+          "spans": "1:95",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        }
+      ]
+    },
+    {
+      "sheet": "Enrollment",
+      "dimension": "A1:CN134",
+      "pane": {
+        "ySplit": "7",
+        "topLeftCell": "A8",
+        "activePane": "bottomLeft",
+        "state": "frozenSplit"
+      },
+      "columns": [
+        {
+          "min": "1",
+          "max": "1",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "2",
+          "max": "2",
+          "width": "11.453125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "3",
+          "max": "3",
+          "width": "16.36328125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "4",
+          "max": "4",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "5",
+          "max": "92",
+          "width": "9.81640625",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "93",
+          "max": "16384",
+          "width": "8.7265625",
+          "style": "1"
+        }
+      ],
+      "top_row_heights": [
+        {
+          "r": "1",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "2",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "3",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "4",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "5",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "6",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "7",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "8",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        }
+      ]
+    },
+    {
+      "sheet": "Enrollment-Reg X SA",
+      "dimension": "A1:CS24935",
+      "pane": {
+        "ySplit": "1",
+        "topLeftCell": "A2",
+        "activePane": "bottomLeft",
+        "state": "frozenSplit"
+      },
+      "columns": [
+        {
+          "min": "1",
+          "max": "1",
+          "width": "16.36328125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "2",
+          "max": "2",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "3",
+          "max": "5",
+          "width": "11.453125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "6",
+          "max": "7",
+          "width": "16.36328125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "8",
+          "max": "9",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "10",
+          "max": "97",
+          "width": "9.81640625",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "98",
+          "max": "16384",
+          "width": "8.7265625",
+          "style": "1"
+        }
+      ],
+      "top_row_heights": [
+        {
+          "r": "1",
+          "spans": "1:97",
+          "ht": "17",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "2",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "3",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "4",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "5",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "6",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "7",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "8",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        }
+      ]
+    },
+    {
+      "sheet": "Disenrollment",
+      "dimension": "A1:CN112",
+      "pane": {
+        "ySplit": "6",
+        "topLeftCell": "A7",
+        "activePane": "bottomLeft",
+        "state": "frozenSplit"
+      },
+      "columns": [
+        {
+          "min": "1",
+          "max": "1",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "2",
+          "max": "2",
+          "width": "11.453125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "3",
+          "max": "3",
+          "width": "16.36328125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "4",
+          "max": "4",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "5",
+          "max": "92",
+          "width": "9.81640625",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "93",
+          "max": "16384",
+          "width": "8.7265625",
+          "style": "1"
+        }
+      ],
+      "top_row_heights": [
+        {
+          "r": "1",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "2",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "3",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "4",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "5",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "6",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "7",
+          "spans": "1:92",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "8",
+          "spans": "1:92",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        }
+      ]
+    },
+    {
+      "sheet": "Disenrollment_Reg X SA",
+      "dimension": "A1:CS35313",
+      "pane": null,
+      "columns": [
+        {
+          "min": "1",
+          "max": "1",
+          "width": "16.36328125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "2",
+          "max": "2",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "3",
+          "max": "5",
+          "width": "11.453125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "6",
+          "max": "7",
+          "width": "16.36328125",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "8",
+          "max": "9",
+          "width": "18",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "10",
+          "max": "97",
+          "width": "9.81640625",
+          "style": "1",
+          "bestFit": "1",
+          "customWidth": "1"
+        },
+        {
+          "min": "98",
+          "max": "16384",
+          "width": "8.7265625",
+          "style": "1"
+        }
+      ],
+      "top_row_heights": [
+        {
+          "r": "1",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "2",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "3",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "4",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "5",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "6",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "7",
+          "spans": "1:97",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        },
+        {
+          "r": "8",
+          "spans": "1:97",
+          "ht": "18",
+          "customHeight": "1",
+          "{http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac}dyDescent": "0.35"
+        }
+      ]
+    }
+  ]
+}

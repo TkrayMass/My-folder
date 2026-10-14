@@ -1,0 +1,736 @@
+{
+  "snapshot_date": "2026-10-14",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "role": "package validation/support",
+      "sha256": "8b209f6984cc577c2a116f6739d75b2104a97ef5358287eec6eed3150eea2150"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "d134dae9ce732fdc2a5cebf95b23def56585b9f6f286b9742b8ed8ee967ac78e",
+      "role": "package documentation/support"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "sha256": "f04c302bc43c076894cc6cbf5fd922073906b6fcde7e2eb468163d9946d423fa",
+      "role": "package documentation/support"
+    },
+    {
+      "path": "docs/DEPLOYMENT.md",
+      "sha256": "e598c86c97074bd78e64e5088ab64d08148ae7e58ea5470b006a89a383aa01c8",
+      "role": "package documentation/support"
+    },
+    {
+      "path": "docs/OPERATIONS.md",
+      "sha256": "58005660e6ddde0ffef763476558283208a7a9f5cc033a23a24a32367dfffa97",
+      "role": "package documentation/support"
+    },
+    {
+      "path": "docs/QC_METHODS.md",
+      "sha256": "7fbf4080645537b64ab5506074e8a56593507078bb00a1ec9913eb33607055f4",
+      "role": "package documentation/support"
+    },
+    {
+      "path": "docs/REPOSITORY.md",
+      "sha256": "d797a17bdca223100ba19bd33e4d7bd5a94441d312c2cc0988e38496b6b77dcd",
+      "role": "package documentation/support"
+    },
+    {
+      "path": "docs/VALIDATION.md",
+      "sha256": "61331cb9323111a7ed3bcaf0befdbd5a0c46f75c0ff54c5a3edf04afdc8836a8",
+      "role": "package documentation/support"
+    },
+    {
+      "path": "legacy/Code/Enrollment_Weekly_Automation.py",
+      "sha256": "97c2c2a1ca33f4fae3adfc9756408d8f4dfb96f1bb4a83db5fee943ad8483557",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_GitHub_Update\\Enrollment_report\\Code\\Enrollment_Weekly_Automation.py",
+      "role": "superseded repository source"
+    },
+    {
+      "path": "legacy/Code/format_enrollment_workbook.bat",
+      "sha256": "8a7586f8fc7975e2648d3ed52c018af04ae5f451f32c688eb23dc504821ffddf",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_GitHub_Update\\Enrollment_report\\Code\\format_enrollment_workbook.bat",
+      "role": "superseded repository source"
+    },
+    {
+      "path": "legacy/Code/Format_Enrollment_Workbook.ps1",
+      "sha256": "75ea62c45068ed282e5673e804117d83206b810660a3426572e91085525f57c5",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_GitHub_Update\\Enrollment_report\\Code\\Format_Enrollment_Workbook.ps1",
+      "role": "superseded repository source"
+    },
+    {
+      "path": "legacy/Code/Monthly_View_Report_Automated_Production.sas",
+      "sha256": "44ff80d5740297c04d408b2c280ecb7789e6eee84acbeb51a4e660edf44c8598",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_GitHub_Update\\Enrollment_report\\Code\\Monthly_View_Report_Automated_Production.sas",
+      "role": "superseded repository source"
+    },
+    {
+      "path": "legacy/Code/run_aco_weekly_friday_distribution.bat",
+      "sha256": "28e4ac3f05605c8474a357d1e183d72668245269edcef096ad47f2f1bb46d0e8",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_GitHub_Update\\Enrollment_report\\Code\\run_aco_weekly_friday_distribution.bat",
+      "role": "superseded repository source"
+    },
+    {
+      "path": "legacy/Code/Run_ACO_Weekly_Full_Process.ps1",
+      "sha256": "ba019c388d36c6679861dd146f49509238bdf3358bd87acd62a6e78f1de5c2c6",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_GitHub_Update\\Enrollment_report\\Code\\Run_ACO_Weekly_Full_Process.ps1",
+      "role": "superseded repository source"
+    },
+    {
+      "path": "legacy/Code/run_aco_weekly_retry.sh",
+      "sha256": "47cf3762d3f87a931114efe31033c0dfb4247a6be85cc40aa7ffd06bc1721a24",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_GitHub_Update\\Enrollment_report\\Code\\run_aco_weekly_retry.sh",
+      "role": "superseded repository source"
+    },
+    {
+      "path": "legacy/Code/run_enrollment_weekly.bat",
+      "sha256": "ef20fd1fe0ff38826b9f235cfb9d4de909bec9342bee51011d97c4c66b97d320",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_GitHub_Update\\Enrollment_report\\Code\\run_enrollment_weekly.bat",
+      "role": "superseded repository source"
+    },
+    {
+      "path": "legacy/Code/Send_ACO_Weekly_Friday_Distribution.ps1",
+      "sha256": "c1d58c2b19ea2003f286e66c55c703b3db2caf3e290273694f2ef4ce9c346c28",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_GitHub_Update\\Enrollment_report\\Code\\Send_ACO_Weekly_Friday_Distribution.ps1",
+      "role": "superseded repository source"
+    },
+    {
+      "path": "legacy/README.md",
+      "sha256": "ebaa9d5cd2962ff33f6a8de415d6610a2227534c9051e91c16cfdb11a1ab172a",
+      "role": "package documentation/support"
+    },
+    {
+      "path": "README.md",
+      "sha256": "c1affdde9f23c9d2d7e4c6243574deb5cde586be800246385bfd6a9a3c7b271d",
+      "role": "package documentation/support"
+    },
+    {
+      "path": "SOURCE_REVIEW.json",
+      "sha256": "b9b383d7601eca92cb81604cb31a58923e1dfa4eff7e4c572ccdf03f4a37b847",
+      "role": "package documentation/support"
+    },
+    {
+      "path": "src/linux/ACO_Weekly_Enrollment_Integrated.sas",
+      "sha256": "446a61fbd717293c69f8b1c885d6ec9fe7ead3e0f4ca7cfad644390d98028bfd",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/ACO_Weekly_Enrollment_Integrated.sas",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/adaptive_qc_policy.py",
+      "sha256": "1ac8fdab44067427762d543fa8c6745ac189cca825ad7d90ba12c2112894fd00",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/adaptive_qc_policy.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/assemble_source_checks.py",
+      "sha256": "98a154eae3266d8d8376b642da594c3804d193bdb29b68ab1d2d2163369341eb",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/assemble_source_checks.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/check_transfer_gate.py",
+      "sha256": "58db20df14f33a7dede2621e863d8172a38e3c2f956ac261350b6ad5e6c51ac5",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/check_transfer_gate.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/compare_distributed_baseline.py",
+      "sha256": "088b5289fec8e141209a47a7730222246019ad9f70e5e1c3f68cab9cf11f93a1",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/compare_distributed_baseline.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/cross_sheet_precision.py",
+      "sha256": "b348bf2df8232c9fc3d49b88ef8790efca651fe13c295b3dedf4a644ac1a0e6d",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/cross_sheet_precision.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/finalize_business_qc.py",
+      "sha256": "af0d0c1ac31c99850e0030a6a7dcad6fc872a17328173c0beb8a9071b000de30",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/finalize_business_qc.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/finalize_enrollment_run.py",
+      "sha256": "e5bc6b427ce6af48b1da850a6c5dcfce44eac9be39ed4c070aff9958d74d09c4",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/finalize_enrollment_run.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/inspect_baseline.py",
+      "sha256": "eccb94ea7d4ffd3be5f5fe2218088fab05f37b19aee96606071cd6c1639188cf",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/inspect_baseline.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/normalize_full_report.py",
+      "sha256": "dfad47e5312c5c5160824d24f34e394892c7ed8e400aa4066adffaf957a1cd41",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/normalize_full_report.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/normalize_report_font.py",
+      "sha256": "975b9aca95d74f8dee31edb1d804313e0a78d954260a460b6ec1e33ffc3a3fa2",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/normalize_report_font.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/prepare_primary_qc.py",
+      "sha256": "f26660dc665af37c52890453b0cf41278860aa8b415bca72edbea0b3404b0678",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/prepare_primary_qc.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/prepare_server_qc.py",
+      "sha256": "995d1843a392ae034b7db0503496fd77d60dd82c11f751d630a5c5298b095a8d",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/prepare_server_qc.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/prepare_transfer_package.py",
+      "sha256": "268f8733818cd4d6deae7cdafa4db5fb71521f708db73c3c9c891f8cd0ec1cd5",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/prepare_transfer_package.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/promote_distributed_baseline.py",
+      "sha256": "95d9b5442007c84c723d3766dfcbcb75fb2d75b3e48cf6ad10a5d252b4f4300a",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/promote_distributed_baseline.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/Render_Primary_QC.sas",
+      "sha256": "5555e4a9c70b5b90321e7020caa26fd28a99eab01c58fbf2652d5fb08f8f39d5",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/Render_Primary_QC.sas",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/Render_Private_QC.sas",
+      "sha256": "803ddbf90394117e8b7de233ee684336f3609dfd3f94099c7a1263c8008906fa",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/Render_Private_QC.sas",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/report_reader.py",
+      "sha256": "3c01efa205b506d61a378a9da39ea7c12849336538504935bd00a9b74f21eef4",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/report_reader.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/run_enrollment_integrated_candidate.sh",
+      "sha256": "f1f7333fb2e91acdc470b9dc1e8900d3496a658d4397c321f5ecea2546ffeaa9",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/run_enrollment_integrated_candidate.sh",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/run_enrollment_scheduled_v1.sh",
+      "sha256": "2aa7a2e7138c08bd5045da1bb5c54a6f9bbdf169adb735e0859bd42a8af023f6",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/run_enrollment_scheduled_v1.sh",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/run_sas_logged.py",
+      "sha256": "d2a5e6ff0b96480b30ae92c1b8a4b25a565674257fe939fb1ebf5f75dec3d947",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/run_sas_logged.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/run_workbook_checks.py",
+      "sha256": "d0f11ea2915c732f7db8534ad35ca3710605afc4c818cbd241eaa2eb01be68ad",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/run_workbook_checks.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/send_failure_alert.py",
+      "sha256": "b15776ac4fb39c8432bc1f267222a75d45b20815f72da47391e769a96ae3a45b",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/send_failure_alert.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/send_qc_email.py",
+      "sha256": "4380d99dcd587ca763b89a2dd5ac584859157eaca7b3956cfb8c8f436d9d092a",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/send_qc_email.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/validate_cross_sheet.py",
+      "sha256": "4e2040932236bfba76d1a1883fe26698ac4d6c3c6459187c6f3707f23e0f532f",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/validate_cross_sheet.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/validate_detail.py",
+      "sha256": "13c5f15c37d44a894c7ef27673795bbb4e3afd40eabc327d789147baed4f5852",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/validate_detail.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/Validate_Integrated_Run_Sources.sas",
+      "sha256": "12cae1f3dab3b22669f07da280b74b05aa91569d78f84cc93cefb462ae4f5b50",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/Validate_Integrated_Run_Sources.sas",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/validate_primary_qc.py",
+      "sha256": "6d5f17d178d9003fd1da0da6fbb76ecfb5eaba4a7116082906ae71ed4909de22",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/validate_primary_qc.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/validate_server_qc.py",
+      "sha256": "40e191256ae1df77a2876af2d2e552f9419ea5ef889948d2ba668d04e6064813",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/validate_server_qc.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/validate_workbook.py",
+      "sha256": "a2b8d2e572a237d5aede85777040204acbd803edbdf7e1ca19eb7837cc86348a",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/validate_workbook.py",
+      "role": "installed Linux source"
+    },
+    {
+      "path": "src/research/ACO_Rebuild_Refresh.sql",
+      "sha256": "d20b73c492c37f5dd4d829725f547ac71a1f1119309c2cc6089a6a036080c17f",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\ACO_Rebuild_Refresh.sql",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/ACO_Weekly_Enrollment_Native_XLSX.sas",
+      "sha256": "d2f8c3b1aec8823dbf2e78506c5393a0637248e75f48cbf05bd990c37ff35683",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\ACO_Weekly_Enrollment_Native_XLSX.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/ACO_Weekly_Enrollment_Native_XLSX_Formatted.sas",
+      "sha256": "a49e3ac5ee313e8784886e71981ac46e5e2ebdbf5475b53006a974ca438c12c4",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\ACO_Weekly_Enrollment_Native_XLSX_Formatted.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/ACO_Weekly_Enrollment_Rebuild.sas",
+      "sha256": "d8074672869a5101a832ac22c6b924f2f78464fcfa96feb898ef420f6ca1beec",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\ACO_Weekly_Enrollment_Rebuild.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/ACO_Weekly_Enrollment_Visual_Match.sas",
+      "sha256": "8ac79d0bc5e7815c44a750e9d4fd5c242ef01f89b7efbc31625c624fc8b91eb0",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\ACO_Weekly_Enrollment_Visual_Match.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/ACO_Weekly_Enrollment_XLSX_Render_Only.sas",
+      "sha256": "7838ddc7e7cd23d260aa0c9b8d0cf72db0569e81e96cc03ee4119a9a45cabd59",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\ACO_Weekly_Enrollment_XLSX_Render_Only.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/ACO_Weekly_Enrollment_XLSX_Render_Only_Formatted.sas",
+      "sha256": "eb60b2fa9dd4fd4cbc025736eb71e3ed2acb88df1d75b73bd0450b2da0b4b9f8",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\ACO_Weekly_Enrollment_XLSX_Render_Only_Formatted.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/check_report_compression.py",
+      "sha256": "9530fd76c7f6e8c2dbebef9dad978bdb96308b72e561b5689f3d6911ba0d78b8",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\check_report_compression.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/check_smtp_capabilities.py",
+      "sha256": "33c3c39c37b5e8399d6be95cf393a3233364ca55f6299dfc6967d920b583924d",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\check_smtp_capabilities.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Copy-VerifiedEnrollmentFile.ps1",
+      "sha256": "d5864d6d6fd41404cef909413ac90fd4800ea4feebc736bdb574354e72d85862",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Copy-VerifiedEnrollmentFile.ps1",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/finalize_visual_qc_v1.sh",
+      "sha256": "eb9adc27b6882b3050cfc078b5a9bed9d8b2f504f8acd94c1f86ffe33176d472",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\finalize_visual_qc_v1.sh",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/finalize_visual_qc_v2.sh",
+      "sha256": "edd77c7f62e16ec75117dc61bff87741abf9baa9103ebe4d51bf4a69ff6bf496",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\finalize_visual_qc_v2.sh",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Format_Probe_20261013.sas",
+      "sha256": "0050353a6fbfa44315d2483c09f8ee9a19187b5d9f4c5b07315d69535fdb8720",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Format_Probe_20261013.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Format_Probe_20261013_v2.sas",
+      "sha256": "d633f27a428b0981b39a4cb274bcdbe0a5e713e88a2ede65aae3ef87b8c08681",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Format_Probe_20261013_v2.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Invoke-EnrollmentXlsxTransfer.ps1",
+      "sha256": "bf89813336b69c82d9701cd959962ca34bd21297e377af5da5deaa8b6dde7d79",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Invoke-EnrollmentXlsxTransfer.ps1",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Native_XLSX_Probe.sas",
+      "sha256": "978ada8226cc2f717fbc3f67a46b77448e516dec7634e656358bafd80aed211e",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Native_XLSX_Probe.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/normalize_summary_preview.py",
+      "sha256": "fac3f05d6f2eb553b985ac0a788575cef21c2b4513ed2a3dffb2b100d47dc02b",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\normalize_summary_preview.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/prepare_multipart_email_drafts.py",
+      "sha256": "bbc81cbb5da6b84c52af40bc6ff7fbd855bc83c51fe31a415578f972aceb6654",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\prepare_multipart_email_drafts.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/prepare_qc_email.py",
+      "sha256": "e0366b49f042f9fd5c22791b09739fca4e2af27208fea0dc6f9d9996c307b2d8",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\prepare_qc_email.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/prepare_report_transfer_test.py",
+      "sha256": "9774ebcd3564950fc493dc1dd75a97432ab1333533f8bf5fca200ede10e66cc3",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\prepare_report_transfer_test.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/prepare_transfer_parts.py",
+      "sha256": "73e6affe378ea27ded62696ac2ce8ead600418c6066e35c39e66bd2c82637c2a",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\prepare_transfer_parts.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Published_Report_Format_Reference.json",
+      "sha256": "a0a6c133138e835e3bbf3ef9308e9ce6cf44257f0acc6cf388a322279f8bf028",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Published_Report_Format_Reference.json",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/recover_pasted_receipts.py",
+      "sha256": "f072eea441f25706ab7b11835308074f252fd25d66d3b2f82f764f5a2fbcd71f",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\recover_pasted_receipts.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/recover_workspace_run.py",
+      "sha256": "109267bd1e02dfca16a13d5d2afb08224876b2675b686f8d7d9f29058dbed56f",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\recover_workspace_run.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/recover_workspace_run_v3.py",
+      "sha256": "9aca0dbc268100d3d1777f71f9a37a10d53241a8af354387dff8ed2a95f0e397",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\recover_workspace_run_v3.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/render_private_qc.sh",
+      "sha256": "fe4daf67562738ca0250e5ec575be7b9d8d81741057f7056cfd2d383bdc1fe2c",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\render_private_qc.sh",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/repack_delivery_xlsx.py",
+      "sha256": "5ce31a4f4846f640054374034631db35f01a7848b4114ba1c23b171081aa358d",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\repack_delivery_xlsx.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/run_enrollment_native_xlsx.sh",
+      "sha256": "ec5a9d498826ca094cb6e8d8cb50d602d028d852df458f77c975964545042aa5",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\run_enrollment_native_xlsx.sh",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/run_enrollment_qc.sh",
+      "sha256": "dcfd87ee6eb8f048148d8bd36fd0a6bf0e246427971940bfc617255b158dfada",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\run_enrollment_qc.sh",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/run_enrollment_rebuild.sh",
+      "sha256": "c288321ad228278a4e9b0245645fa4224dbd187784edf3ad7ffdd53de957a279",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\run_enrollment_rebuild.sh",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/run_enrollment_visual_v1.sh",
+      "sha256": "6852a9d14f991a5287eafbca15ce5d1ce1b610ba1a8c9ba94dfbcf99f8df17dd",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\run_enrollment_visual_v1.sh",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/run_enrollment_xlsx_formatted_v1.sh",
+      "sha256": "1a0a80ecd0c1ef938def1b2d157a86e87be8c426274b6e1d78375d67ba7ffbac",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\run_enrollment_xlsx_formatted_v1.sh",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/run_enrollment_xlsx_render_only.sh",
+      "sha256": "f3298b06b87ffc1b3f6aee5d2c18d023ab341e7dd24fd581ccb654f89b180642",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\run_enrollment_xlsx_render_only.sh",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/run_sas_logged_v2.py",
+      "sha256": "d2a5e6ff0b96480b30ae92c1b8a4b25a565674257fe939fb1ebf5f75dec3d947",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\run_sas_logged_v2.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/send_cloud_publication_test.py",
+      "sha256": "70e55e363900c4181a284c7b5df3e4f70e64b63c1f86ba5af963127e5e8da0a6",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\send_cloud_publication_test.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/send_report_transfer_once.py",
+      "sha256": "c53f1f6373ba67e18dc2bc5527d1ea8e0bce0dbd58602ffd79b1672f349e3d7e",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\send_report_transfer_once.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/send_verified_qc_test.py",
+      "sha256": "11e256c897f166d6374a308254facf22bab3fe1c83dc214c59f763fdce48b4e1",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\send_verified_qc_test.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/unwrap_report_notes.py",
+      "sha256": "5da530c0ef17d1f41be88417aa6714768ae3688809531d49d84bf5fe6a1b5ceb",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\unwrap_report_notes.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/upload_report_graph.py",
+      "sha256": "259640c4270a0c652d458440cedd17fe19e8efe547f44e47c67d4031aed46e6b",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\upload_report_graph.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Validate_Combined_Run_Sources.sas",
+      "sha256": "498f6c67afad7b49ad9716ff4c2ab7e074c03c4b8c65216c7217a45b288223ba",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Validate_Combined_Run_Sources.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Validate_Corrected_Join.sas",
+      "sha256": "74bc6474f66b8e47117940574c15bab6a8ce15eb02d3480d132e6286338f24ae",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Validate_Corrected_Join.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Validate_Corrected_Join.sql",
+      "sha256": "0afe02d2cde48cf9118f5911795cdf3ff439c02b83acd851c5306f5d9f82e0dd",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Validate_Corrected_Join.sql",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Validate_Existing_Test_Tables.sas",
+      "sha256": "b75a9cb189476f56d0b1d62ff8d1c4e6d18f8ffb039b60adcb5838d22abc7334",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Validate_Existing_Test_Tables.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Validate_Existing_Test_Tables.sql",
+      "sha256": "2799cc374aa4d01a961d8c6e1424ad93695fc8e0d1d4a760ff91fa77260a84bf",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Validate_Existing_Test_Tables.sql",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/validate_native_format.py",
+      "sha256": "93c0ff9bd496010efdd21b9083108311544d68737287a0d147bbc3da4bb6bb71",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\validate_native_format.py",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Validate_Native_Run_20261013T192721.sas",
+      "sha256": "a29a59b24a0ace15c54840b1f6b5a83e709d233e6c506cde1a87bf0742447f04",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Validate_Native_Run_20261013T192721.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Validate_Visual_Run_Sources.sas",
+      "sha256": "cbf430a95abf2c64bb792093e14562beda7a5d7aecc67d5664d5ddd94ab545bd",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Validate_Visual_Run_Sources.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Visual_Match_Probe.sas",
+      "sha256": "05dd71906a4dae8f43da40afd107026f5b91c1867730a319e4479bbad96d72f1",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Visual_Match_Probe.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Visual_Summary_Preview.sas",
+      "sha256": "6c48df1857115992a2637aed9e4162ba128658c5ead4c138507c4623b5c73f42",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Visual_Summary_Preview.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Visual_Summary_Preview_v4.sas",
+      "sha256": "d1b3bfed6f47bc2e4f1157e100a419bfb6e53cb97127aac86175c0f1cda2387a",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Visual_Summary_Preview_v4.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Visual_Summary_Preview_v5.sas",
+      "sha256": "9ed812c0df41ad169cc6f0d8ed24226e62c2a8119dceec59d7ad897c66ecbf78",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Visual_Summary_Preview_v5.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/research/Visual_Summary_Preview_v7.sas",
+      "sha256": "6c48df1857115992a2637aed9e4162ba128658c5ead4c138507c4623b5c73f42",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\Candidate\\Visual_Summary_Preview_v7.sas",
+      "role": "development reference; not installed"
+    },
+    {
+      "path": "src/windows/check_transfer_gate.py",
+      "sha256": "58db20df14f33a7dede2621e863d8172a38e3c2f956ac261350b6ad5e6c51ac5",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Ad Hoc\\Enrollment_Rebuilt_Runtime\\check_transfer_gate.py",
+      "role": "installed Windows source"
+    },
+    {
+      "path": "src/windows/promote_baseline_windows.py",
+      "sha256": "91f573222f128694830384f4f69d3f1ef145c422bcb629d67eae15fbb705b2e4",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Ad Hoc\\Enrollment_Rebuilt_Runtime\\promote_baseline_windows.py",
+      "role": "installed Windows source"
+    },
+    {
+      "path": "src/windows/run_rebuilt_enrollment_friday.bat",
+      "sha256": "37f70a81152727d731a15527187f3912b409626a2a779af473cc2a09754deb62",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Ad Hoc\\Enrollment_Rebuilt_Runtime\\run_rebuilt_enrollment_friday.bat",
+      "role": "installed Windows source"
+    },
+    {
+      "path": "src/windows/run_rebuilt_enrollment_thursday.bat",
+      "sha256": "afaf60dda97913174768952cac7a4bcf6418c833c58f22eb1ece128b5833d1fe",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Ad Hoc\\Enrollment_Rebuilt_Runtime\\run_rebuilt_enrollment_thursday.bat",
+      "role": "installed Windows source"
+    },
+    {
+      "path": "src/windows/run_rebuilt_enrollment_wednesday.bat",
+      "sha256": "edf6bda11a31629853c533b0deae7741b3fc43eceada0f5de53089fc5641a8f3",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Ad Hoc\\Enrollment_Rebuilt_Runtime\\run_rebuilt_enrollment_wednesday.bat",
+      "role": "installed Windows source"
+    },
+    {
+      "path": "src/windows/Send_Rebuilt_Enrollment_Friday.ps1",
+      "sha256": "9603bd152e1b5d875bb81fa590583a86302844fb912c435b9deb01af2daf2a84",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Ad Hoc\\Enrollment_Rebuilt_Runtime\\Send_Rebuilt_Enrollment_Friday.ps1",
+      "role": "installed Windows source"
+    },
+    {
+      "path": "src/windows/transfer_rebuilt_windows.py",
+      "sha256": "51c0af7349abaf177638266635ad7d5276669890098be9bd95497079c03a8b0d",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Ad Hoc\\Enrollment_Rebuilt_Runtime\\transfer_rebuilt_windows.py",
+      "role": "installed Windows source; Thursday date-selection fix tested and installed October 14"
+    },
+    {
+      "path": "src/windows/verify_published_report.py",
+      "sha256": "a385994729cc1ce91c1818e8c75359e6c8ac1161a2b56500bf8c0b33a8987eac",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Ad Hoc\\Enrollment_Rebuilt_Runtime\\verify_published_report.py",
+      "role": "installed Windows source"
+    },
+    {
+      "path": "TEST_RESULTS.txt",
+      "role": "package validation/support",
+      "sha256": "82060c31c371b45b777cda5b5c1abe48c7143e9a327f7f8b216241112d0f150b"
+    },
+    {
+      "path": "tests/run_tests.py",
+      "sha256": "e8cb4cd7866675937a3bfd34cd76739e1f2118b553a98d0464318d4fa486e474",
+      "role": "package documentation/support"
+    },
+    {
+      "path": "tests/test_adaptive_qc_policy.py",
+      "sha256": "a852aa248fb4dfeeaabc07fc13774cd45376d363c5746bbbaefbe35bd9d3a02e",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_adaptive_qc_policy.py",
+      "role": "existing regression test adapted to package layout"
+    },
+    {
+      "path": "tests/test_baseline_comparison.py",
+      "sha256": "f646e4251e42fc26088851950880c60e8d0e53f67c619cbf88915908b2b3bea2",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_baseline_comparison.py",
+      "role": "existing regression test adapted to package layout"
+    },
+    {
+      "path": "tests/test_baseline_promotion.py",
+      "sha256": "a4a49fda3b0c8fa38191558f5b037d3ce04e8e614780392d997199e856f7346d",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_baseline_promotion.py",
+      "role": "existing regression test adapted to package layout"
+    },
+    {
+      "path": "tests/test_business_qc.py",
+      "sha256": "0a9502b5c63fadb602f7e0b6d0e259536c236c0ff06d1e8173de3929435032e0",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_business_qc.py",
+      "role": "existing regression test adapted to package layout"
+    },
+    {
+      "path": "tests/test_cross_sheet_precision.py",
+      "sha256": "93dfcab1fb22af62ce0d304cc69087c24a470db130552e3abedb3b786b7cdcc9",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_cross_sheet_precision.py",
+      "role": "existing regression test adapted to package layout"
+    },
+    {
+      "path": "tests/test_direct_onedrive.py",
+      "sha256": "eb2076d846e0be7d17245ffb1aeec8fec55497f93307705ae604152d8df38d6b",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_direct_onedrive.py",
+      "role": "existing regression test adapted to package layout"
+    },
+    {
+      "path": "tests/test_graph_upload.py",
+      "sha256": "751f223dbf8ea5d3d29f026a88ec515a806c360071e3fa1dab5ed6ae73babb87",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_graph_upload.py",
+      "role": "existing regression test adapted to package layout"
+    },
+    {
+      "path": "tests/test_published_report.py",
+      "sha256": "5fc2431829f7d2d82779d11e74c083a296dbd4b8a801aa93bfb4a31f7e6db2b9",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_published_report.py",
+      "role": "existing regression test adapted to package layout"
+    },
+    {
+      "path": "tests/test_qc_email.py",
+      "sha256": "2cbad805d23b1e0340520fd36835689c88df533d6a1fac2c451438c170d1210a",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_qc_email.py",
+      "role": "existing regression test adapted to package layout"
+    },
+    {
+      "path": "tests/test_report_reader.py",
+      "sha256": "a3f5c756616068dd913fee322b477d6e20dec3e2f179c6aaf8b11d44b133a8a2",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_report_reader.py",
+      "role": "existing regression test adapted to package layout"
+    },
+    {
+      "path": "tests/test_run_tracking.py",
+      "sha256": "40c5662f66e19b1cf2ef9091fedd11fc1bcd6b844aba9ffbffe1554bf696ef3b",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_run_tracking.py",
+      "role": "existing regression test adapted to package layout"
+    },
+    {
+      "path": "tests/test_transfer_gate.py",
+      "sha256": "0d8be1673ff9feec0c86d934abd97e341452abc117d788e16f913c012cc07d26",
+      "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_transfer_gate.py",
+      "role": "existing regression test adapted to package layout"
+    }
+  ]
+}

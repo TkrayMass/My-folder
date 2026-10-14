@@ -1,0 +1,89 @@
+ods _all_ close;
+options nosymbolgen nomprint nosource;
+
+/* Load Snowflake credentials */
+%include "/sas_mass_health/shared/tkray/private/snowflake_credentials.sas";
+
+options source;
+
+libname my_snow1 snow
+    datasrc=MHDWPROD
+    database=MHDWPROD
+    schema=MHA
+    uid="TATYANA.KRAY@MASS.GOV"
+    conopts="
+        AUTHENTICATOR=SNOWFLAKE_JWT;
+        ROLE=MHA_TEAM_ROLE;
+        WAREHOUSE=MHA_WH;
+        PRIV_KEY_FILE=/sas_mass_health/shared/tkray/ssh/keys/krayt_rsa_key_1.p8;
+        PRIV_KEY_FILE_PWD=&SF_KEY_PWD."
+;
+options nosource nomprint nomlogic nosymbolgen;
+proc sql; connect using my_snow1; create table work.control1 as select * from connection to my_snow1 (
+WITH expected AS (
+ SELECT TYPE, ENRDISCLASS, FIRSTDTWEEK, SUM(MBRS) AS EXPECTED_MBRS
+ FROM MHDWPROD.MHA.ACOENR_REBUILD_04_ALLDATA_NAME
+ WHERE PROVTYPE NOT IN ('ZZ - ACOB PCCB')
+ GROUP BY TYPE, ENRDISCLASS, FIRSTDTWEEK
+), actual AS (
+ SELECT TYPE, ENRDISCLASS, FIRSTDTWEEK, SUM(MBRS) AS ACTUAL_MBRS
+ FROM MHDWPROD.MHA.ACOENR_REBUILD_05_CLEANREP_NAME
+ WHERE MEMBERTYPE='All'
+ GROUP BY TYPE, ENRDISCLASS, FIRSTDTWEEK
+)
+SELECT COALESCE(e.TYPE,a.TYPE) AS TYPE,
+ COALESCE(e.ENRDISCLASS,a.ENRDISCLASS) AS ENRDISCLASS,
+ COALESCE(e.FIRSTDTWEEK,a.FIRSTDTWEEK) AS FIRSTDTWEEK,
+ e.EXPECTED_MBRS,a.ACTUAL_MBRS,
+ a.ACTUAL_MBRS-e.EXPECTED_MBRS AS DIFFERENCE,
+ CASE WHEN e.TYPE IS NULL OR a.TYPE IS NULL THEN 'MISSING_GROUP'
+      WHEN e.EXPECTED_MBRS IS NULL OR a.ACTUAL_MBRS IS NULL THEN 'MISSING_VALUE'
+      WHEN ABS(a.ACTUAL_MBRS-e.EXPECTED_MBRS)>0.000001 THEN 'FAIL'
+      ELSE 'PASS' END AS CONTROL_STATUS
+FROM expected e FULL OUTER JOIN actual a
+ ON e.TYPE=a.TYPE AND EQUAL_NULL(e.ENRDISCLASS,a.ENRDISCLASS)
+ AND e.FIRSTDTWEEK=a.FIRSTDTWEEK
+); disconnect from my_snow1; quit;
+%macro check1; %if &sqlrc ne 0 %then %abort cancel; %mend; %check1;
+proc export data=work.control1 outfile="/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_Rebuild_ReadOnly/Source_Control_1.csv" dbms=csv replace; run;
+%macro exportcheck1; %if &syserr > 4 %then %abort cancel; %mend; %exportcheck1;
+proc sql; connect using my_snow1; create table work.control2 as select * from connection to my_snow1 (
+WITH expected AS (
+ SELECT TYPE,MEMBERTYPE,ENRDISCLASS,FIRSTDTWEEK,
+ COUNT(*) AS EXPECTED_ROWS,SUM(MBRS) AS EXPECTED_TOTAL
+ FROM MHDWPROD.MHA.ACOENR_REBUILD_05_CLEANREP_NAME
+ GROUP BY TYPE,MEMBERTYPE,ENRDISCLASS,FIRSTDTWEEK
+), actual AS (
+ SELECT TYPE,MEMBERTYPE,ENRDISCLASS,FIRSTDTWEEK,
+ COUNT(*) AS ACTUAL_ROWS,SUM(MBRS) AS ACTUAL_TOTAL,
+ MIN(TOTMEM) AS MIN_DENOMINATOR,MAX(TOTMEM) AS MAX_DENOMINATOR,
+ COUNT_IF(TOTMEM IS NULL OR TOTMEM=0 OR PCTTYPE IS NULL) AS INVALID_RATIO_ROWS,
+ MAX(ABS(PCTTYPE-MBRS/NULLIF(TOTMEM,0))) AS MAX_RATIO_ERROR
+ FROM MHDWPROD.MHA.ACOENR_REBUILD_06_REP_W_PERC
+ GROUP BY TYPE,MEMBERTYPE,ENRDISCLASS,FIRSTDTWEEK
+)
+SELECT COALESCE(e.TYPE,a.TYPE) AS TYPE,
+ COALESCE(e.MEMBERTYPE,a.MEMBERTYPE) AS MEMBERTYPE,
+ COALESCE(e.ENRDISCLASS,a.ENRDISCLASS) AS ENRDISCLASS,
+ COALESCE(e.FIRSTDTWEEK,a.FIRSTDTWEEK) AS FIRSTDTWEEK,
+ e.EXPECTED_ROWS,a.ACTUAL_ROWS,e.EXPECTED_TOTAL,a.ACTUAL_TOTAL,
+ a.MIN_DENOMINATOR,a.MAX_DENOMINATOR,a.INVALID_RATIO_ROWS,a.MAX_RATIO_ERROR,
+ CASE WHEN e.TYPE IS NULL OR a.TYPE IS NULL THEN 'MISSING_GROUP'
+      WHEN e.EXPECTED_TOTAL IS NULL OR a.ACTUAL_TOTAL IS NULL
+        OR a.MIN_DENOMINATOR IS NULL OR a.MAX_DENOMINATOR IS NULL THEN 'MISSING_VALUE'
+      WHEN e.EXPECTED_ROWS<>a.ACTUAL_ROWS THEN 'ROW_COUNT_FAIL'
+      WHEN ABS(e.EXPECTED_TOTAL-a.ACTUAL_TOTAL)>0.000001 THEN 'TOTAL_FAIL'
+      WHEN ABS(e.EXPECTED_TOTAL-a.MIN_DENOMINATOR)>0.000001
+        OR ABS(e.EXPECTED_TOTAL-a.MAX_DENOMINATOR)>0.000001 THEN 'DENOMINATOR_FAIL'
+      WHEN a.INVALID_RATIO_ROWS>0 THEN 'RATIO_REVIEW'
+      WHEN a.MAX_RATIO_ERROR>0.0000000001 THEN 'RATIO_FAIL'
+      ELSE 'PASS' END AS CONTROL_STATUS
+FROM expected e FULL OUTER JOIN actual a
+ ON e.TYPE=a.TYPE AND EQUAL_NULL(e.MEMBERTYPE,a.MEMBERTYPE)
+ AND EQUAL_NULL(e.ENRDISCLASS,a.ENRDISCLASS)
+ AND e.FIRSTDTWEEK=a.FIRSTDTWEEK
+); disconnect from my_snow1; quit;
+%macro check2; %if &sqlrc ne 0 %then %abort cancel; %mend; %check2;
+proc export data=work.control2 outfile="/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_Rebuild_ReadOnly/Source_Control_2.csv" dbms=csv replace; run;
+%macro exportcheck2; %if &syserr > 4 %then %abort cancel; %mend; %exportcheck2;
+%macro finished; %if &syscc > 4 %then %abort cancel; %put NOTE: ACO_REBUILD_SOURCE_CONTROLS_COMPLETE; %mend; %finished; %symdel SF_KEY_PWD / nowarn;

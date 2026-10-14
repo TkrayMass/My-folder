@@ -1,0 +1,40 @@
+test_activation_boundary_and_business_floors (test_adaptive_qc_policy.AdaptivePolicyTests.test_activation_boundary_and_business_floors) ... ok
+test_sample_standard_deviation (test_adaptive_qc_policy.AdaptivePolicyTests.test_sample_standard_deviation) ... ok
+test_change_evidence_never_authorizes_distribution (test_baseline_comparison.BaselineChecks.test_change_evidence_never_authorizes_distribution) ... ok
+test_changed_files_rejected (test_baseline_comparison.BaselineChecks.test_changed_files_rejected) ... ok
+test_only_matching_notified_publication_advances_baseline (test_baseline_promotion.BaselinePromotionTests.test_only_matching_notified_publication_advances_baseline) ... ok
+test_hash_verified_review_kept_visible (test_business_qc.QCGate.test_hash_verified_review_kept_visible) ... ok
+test_missing_controls_block_technical_pass (test_business_qc.QCGate.test_missing_controls_block_technical_pass) ... ok
+test_other_run_cannot_authorize_current_run (test_business_qc.QCGate.test_other_run_cannot_authorize_current_run) ... ok
+test_integer_counts_stay_exact (test_cross_sheet_precision.PrecisionTests.test_integer_counts_stay_exact) ... ok
+test_larger_ratio_difference_rejected (test_cross_sheet_precision.PrecisionTests.test_larger_ratio_difference_rejected) ... ok
+test_observed_native_precision (test_cross_sheet_precision.PrecisionTests.test_observed_native_precision) ... ok
+test_real_member_difference_rejected (test_cross_sheet_precision.PrecisionTests.test_real_member_difference_rejected) ... ok
+CONTENT VERIFIED Summary
+test_direct_copy_and_equivalent_save_without_z_drive (test_direct_onedrive.DirectOneDriveTests.test_direct_copy_and_equivalent_save_without_z_drive) ... ok
+test_real_release_rehearsal_writes_local_receipt_without_z (test_direct_onedrive.DirectOneDriveTests.test_real_release_rehearsal_writes_local_receipt_without_z) ... skipped 'Requires private installed report cache; run separately on deployment host'
+test_scheduled_transfer_rejects_morning_release (test_direct_onedrive.DirectOneDriveTests.test_scheduled_transfer_rejects_morning_release) ... ok
+test_thursday_selects_wednesday_and_handles_boundaries (test_direct_onedrive.DirectOneDriveTests.test_thursday_selects_wednesday_and_handles_boundaries) ... ok
+test_concurrent_cloud_edit_rejected (test_graph_upload.UploadTests.test_concurrent_cloud_edit_rejected) ... ok
+test_corrupt_cloud_copy_rejected (test_graph_upload.UploadTests.test_corrupt_cloud_copy_rejected) ... ok
+test_failed_release_never_authenticates (test_graph_upload.UploadTests.test_failed_release_never_authenticates) ... ok
+test_unconfirmed_final_chunk_rejected (test_graph_upload.UploadTests.test_unconfirmed_final_chunk_rejected) ... ok
+test_verified_chunked_upload_and_readback (test_graph_upload.UploadTests.test_verified_chunked_upload_and_readback) ... ok
+test_wrong_destination_rejected (test_graph_upload.UploadTests.test_wrong_destination_rejected) ... ok
+test_byte_identical (test_published_report.PublishedReportTests.test_byte_identical) ... ok
+CONTENT VERIFIED Summary
+test_content_and_rejections (test_published_report.PublishedReportTests.test_content_and_rejections) ... ok
+test_owner_attachments_idempotency_and_failure_gate (test_qc_email.QCEmailTests.test_owner_attachments_idempotency_and_failure_gate) ... ok
+test_excel_error_is_rejected (test_report_reader.NativeReaderTests.test_excel_error_is_rejected) ... ok
+test_sparse_addresses_precision_and_percent (test_report_reader.NativeReaderTests.test_sparse_addresses_precision_and_percent) ... ok
+test_unexpected_formulas_are_rejected (test_report_reader.NativeReaderTests.test_unexpected_formulas_are_rejected) ... ok
+test_complete_candidate_hashes_evidence_but_never_authorizes_publication (test_run_tracking.RunTracking.test_complete_candidate_hashes_evidence_but_never_authorizes_publication) ... ok
+test_conflicting_qc_decision_fails (test_run_tracking.RunTracking.test_conflicting_qc_decision_fails) ... ok
+test_missing_output_or_mismatched_identity_fails (test_run_tracking.RunTracking.test_missing_output_or_mismatched_identity_fails) ... ok
+test_numbered_error_retains_qc_and_blocks_completion (test_run_tracking.RunTracking.test_numbered_error_retains_qc_and_blocks_completion) ... ok
+test_warning_allowed_but_candidate_not_published_and_invalid_evidence_blocked (test_transfer_gate.TransferGateTests.test_warning_allowed_but_candidate_not_published_and_invalid_evidence_blocked) ... ok
+
+----------------------------------------------------------------------
+Ran 33 tests in 2.881s
+
+OK (skipped=1)

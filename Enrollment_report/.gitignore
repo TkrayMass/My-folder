@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+tests/Validation/
+*.log
+*.xlsx
+*.xls
+*.csv
+*.eml
+.env
+*_credentials.sas
+*.pem
+*.key
