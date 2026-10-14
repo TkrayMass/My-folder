@@ -31,3 +31,5 @@ The Graph uploader in src/research is an isolated candidate. Offline protocol te
 do not establish an approved unattended identity or live upload/readback. Current
 production transfer and distribution depend on the Windows PC. Linux failure-alert
 SMTP delivery has not been proven. No report/member data is shipped as evidence.
+
+Combined-QC update October 14: 35 offline tests passed, one private-cache rehearsal skipped. The SAS-server rehearsal reused completed run 20261014T170002_11198 and checked all 112,730 cells, 748 comparison rows, and 7,483 technical detail rows. All four tabs were visually reviewed. Server rendering preserved percentages as numbers; a narrow XML normalizer removed evidence-expected missing placeholders, restored slash headers, and fitted layout. One-attachment code was backed up and installed without generation, publication, mail submission, or schedule changes.

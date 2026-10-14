@@ -13,9 +13,15 @@ class QCEmailTests(unittest.TestCase):
           'qc_complete':True,'failed_checks':[],'not_run_checks':[],'final_qc_decision':'REVIEW'}))
         primary=audit/'primary.xlsx';primary.write_bytes(b'primary fixture')
         technical=audit/'technical.xlsx';technical.write_bytes(b'technical fixture')
+        combined=audit/'combined.xlsx';combined.write_bytes(b'combined fixture')
+        inputs=audit/'COMBINED_QC_INPUTS.json';inputs.write_text('{}')
+        receipt=audit/'COMBINED_QC_VALIDATION.json';receipt.write_text(json.dumps({'run_id':run,'report_date':'20261014',
+          'combined_qc_status':'PASS','final_qc_sha256':digest(qc),'workbook_sha256':digest(combined),
+          'inputs_sha256':digest(inputs),'qc_decision':'REVIEW','baseline_report_date':'20261007',
+          'comparison_rows':2,'comparison_counts':{'PASS':2}}))
         package={'run_id':run,'report_date':'20261014','release_allowed':True,'qc_decision':'REVIEW',
             'artifacts':{k:{'path':str(p),'sha256':digest(p)} for k,p in
-                         [('final_qc',qc),('primary_qc',primary),('private_qc',technical)]}}
+                         [('final_qc',qc),('primary_qc',primary),('private_qc',technical),('combined_qc',combined),('combined_qc_receipt',receipt),('combined_qc_inputs',inputs)]}}
         path=release/'TRANSFER_PACKAGE.json';path.write_text(json.dumps(package));return path
     def test_owner_attachments_idempotency_and_failure_gate(self):
         with tempfile.TemporaryDirectory(dir=Path(__file__).parent/'Validation') as folder:
@@ -25,7 +31,8 @@ class QCEmailTests(unittest.TestCase):
                 self.assertEqual(mail.notify('fixture')['status'],'SMTP_ACCEPTED')
                 message=client.send_message.call_args[0][0]
                 self.assertEqual(message['To'],'Tatyana.Kray@mass.gov')
-                self.assertEqual(len(list(message.iter_attachments())),2)
+                self.assertEqual(len(list(message.iter_attachments())),1)
+                self.assertEqual(list(message.iter_attachments())[0].get_filename(),'combined.xlsx')
                 self.assertEqual(mail.notify('fixture')['status'],'ALREADY_SUBMITTED')
                 self.assertEqual(client.send_message.call_count,1)
                 data=json.loads(package.read_text());data['qc_decision']='FAIL';package.write_text(json.dumps(data))
@@ -35,4 +42,9 @@ class QCEmailTests(unittest.TestCase):
                 with self.assertRaises(OSError):mail.notify('uncertain')
                 with self.assertRaises(RuntimeError):mail.notify('uncertain')
                 self.assertEqual(client.send_message.call_count,2)
+                self.prepare(root,'tampered')
+                (root/'runs/tampered/combined.xlsx').write_bytes(b'changed workbook')
+                with self.assertRaises(ValueError):mail.notify('tampered')
+                self.assertEqual(client.send_message.call_count,2)
 if __name__=='__main__':unittest.main()
+

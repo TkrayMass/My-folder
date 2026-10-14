@@ -27,6 +27,7 @@ The Thursday schedule starts October 15, 2026. No Z-drive transfer is required.
 4. [Deployment and rollback](docs/DEPLOYMENT.md)
 5. [Validation and known limitations](docs/VALIDATION.md)
 6. [Source inventory and repository maintenance](docs/REPOSITORY.md)
+7. [Combined owner QC workbook](docs/COMBINED_QC.md)
 
 ## Source layout
 

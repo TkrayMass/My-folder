@@ -135,6 +135,15 @@ def main(a):
         copy_verified(files['private_qc'],qc_target,digest(files['private_qc']),a.publish,backups)
         primary_target=Path(a.qc_folder).resolve()/('ACO_Enrollment_Comparison_QC_'+date+'.xlsx')
         copy_verified(files['primary_qc'],primary_target,digest(files['primary_qc']),a.publish,backups)
+        if 'combined_qc' in files:
+            combined=json.loads(files['combined_qc_receipt'].read_text())
+            if (combined.get('run_id')!=run_id or combined.get('combined_qc_status')!='PASS' or
+                combined.get('final_qc_sha256')!=digest(files['final_qc']) or
+                combined.get('workbook_sha256')!=digest(files['combined_qc']) or
+                combined.get('inputs_sha256')!=digest(files['combined_qc_inputs'])):
+                raise ValueError('Combined QC binding differs')
+            combined_target=Path(a.qc_folder).resolve()/('ACO_Weekly_Enrollment_QC_'+date+'.xlsx')
+            copy_verified(files['combined_qc'],combined_target,digest(files['combined_qc']),a.publish,backups)
         published=None
         if a.publish:
             published=publish_to_onedrive(files['report'],a.publish_folder,report_name,gate,staging,getattr(a,'replace_existing',False))

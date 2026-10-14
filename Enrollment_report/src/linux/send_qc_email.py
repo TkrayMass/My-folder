@@ -13,12 +13,18 @@ def notify(run_id):
     if (package.get('run_id')!=run_id or package.get('release_allowed') is not True or
         package.get('qc_decision') not in ('PASS','REVIEW')):raise ValueError('QC email requires a validated, non-failing release')
     artifacts=package['artifacts']
-    for key in ('final_qc','primary_qc','private_qc'):
+    for key in ('final_qc','primary_qc','private_qc','combined_qc','combined_qc_receipt','combined_qc_inputs'):
         if digest(artifacts[key]['path'])!=artifacts[key]['sha256']:raise ValueError('QC artifact checksum changed: '+key)
     qc=json.loads(Path(artifacts['final_qc']['path']).read_text())
     if (qc.get('run_id')!=run_id or qc.get('report_date')!=package.get('report_date') or
         qc.get('qc_complete') is not True or qc.get('failed_checks') or qc.get('not_run_checks') or
         qc.get('final_qc_decision')!=package['qc_decision']):raise ValueError('QC completeness or identity differs')
+    combined=json.loads(Path(artifacts['combined_qc_receipt']['path']).read_text())
+    if (combined.get('run_id')!=run_id or combined.get('report_date')!=package['report_date'] or
+        combined.get('combined_qc_status')!='PASS' or combined.get('final_qc_sha256')!=artifacts['final_qc']['sha256'] or
+        combined.get('workbook_sha256')!=artifacts['combined_qc']['sha256'] or
+        combined.get('inputs_sha256')!=artifacts['combined_qc_inputs']['sha256'] or combined.get('qc_decision')!=package['qc_decision']):
+        raise ValueError('Combined QC receipt identity differs')
     marker=audit/'QC_EMAIL_ATTEMPT.json';result_path=audit/'QC_EMAIL_RESULT.json'
     if marker.exists():
         if result_path.exists() and json.loads(result_path.read_text()).get('status')=='SMTP_ACCEPTED':
@@ -30,10 +36,16 @@ def notify(run_id):
     message['Subject']='Enrollment QC '+package['qc_decision']+' - '+package['report_date']+' - '+run_id
     message.set_content('Enrollment generation and required QC completed with no blocking failure.\n\n'
         'Report date: '+package['report_date']+'\nRun: '+run_id+'\nQC decision: '+package['qc_decision']+
-        '\n\nAttached: comparison QC and technical QC. REVIEW notes remain in technical QC.\n'
-        'The Windows automation will publish this approved run directly to OneDrive.\n'
+        '\n\nOne attached QC workbook contains:\n'
+        'QC_Summary: PASS, REVIEW and FAIL counts, required controls and explanations.\n'
+        'QC_Matrix: prior/current values, differences, percentage changes and flags by month.\n'
+        'QC_Detail: every comparison with thresholds and reasons.\n'
+        'Technical_Detail: rounding and provenance evidence, separate from comparison warnings.\n'
+        'Comparison: '+str(combined['comparison_rows'])+' rows; '+str(combined['comparison_counts'].get('PASS',0))+' PASS, '+str(combined['comparison_counts'].get('REVIEW',0))+' REVIEW, '+str(combined['comparison_counts'].get('FAIL',0))+' FAIL.\n'
+        'Baseline report date: '+combined['baseline_report_date']+'\n'
+        'Thursday at 1 PM Eastern, Windows will publish the approved run directly to OneDrive.\n'
         'This owner QC email is separate from the Friday distribution email.\n')
-    for key in ('primary_qc','private_qc'):
+    for key in ('combined_qc',):
         path=Path(artifacts[key]['path'])
         message.add_attachment(path.read_bytes(),maintype='application',
             subtype='vnd.openxmlformats-officedocument.spreadsheetml.sheet',filename=path.name)

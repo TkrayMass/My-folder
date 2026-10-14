@@ -31,6 +31,17 @@ def prepare(manifest, qc, report, render_folder, destination):
         pr.get('inputs_sha256')!=digest(primary_inputs)):
         raise ValueError('Primary comparison QC does not match completed run')
     paths.update(primary_qc=primary_workbook,primary_qc_receipt=primary_receipt,primary_qc_inputs=primary_inputs)
+    combined=render_folder.parent/'Combined_Render'
+    combined_workbook=combined/('ACO_Weekly_Enrollment_QC_'+gate['report_date']+'.xlsx')
+    combined_inputs=combined/'COMBINED_QC_INPUTS.json'
+    combined_receipt=combined/'COMBINED_QC_VALIDATION.json'
+    cr=json.loads(combined_receipt.read_text())
+    if (cr.get('run_id')!=gate['run_id'] or cr.get('report_date')!=gate['report_date'] or
+        cr.get('combined_qc_status')!='PASS' or cr.get('final_qc_sha256')!=digest(qc) or
+        cr.get('workbook_sha256')!=digest(combined_workbook) or cr.get('inputs_sha256')!=digest(combined_inputs) or
+        cr.get('qc_decision')!=gate['qc_decision']):
+        raise ValueError('Combined QC does not match completed run')
+    paths.update(combined_qc=combined_workbook,combined_qc_receipt=combined_receipt,combined_qc_inputs=combined_inputs)
     policy=render_folder.parents[2]/'business_evidence/Baseline_Policy.csv'
     expected=next(e['sha256'] for c in json.loads(qc.read_text())['checks']
                   if c['check']=='baseline_business_policy' for e in c['evidence'] if e['name']=='Baseline_Policy.csv')

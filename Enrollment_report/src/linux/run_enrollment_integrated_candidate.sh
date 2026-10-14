@@ -77,6 +77,15 @@ mv -- "$QC/Primary_Render/ACO_Enrollment_Comparison_QC.xlsx" "$QC/Primary_Render
 "$PYTHON" "$AUDIT/code/normalize_report_font.py" --source "$QC/Primary_Render/Primary_Raw.xlsx" \
   --destination "$QC/Primary_Render/ACO_Enrollment_Comparison_QC.xlsx"
 "$PYTHON" "$AUDIT/code/validate_primary_qc.py" --folder "$QC/Primary_Render"
+COMBINED="$QC/Combined_Render"
+"$PYTHON" "$AUDIT/code/prepare_combined_qc.py" --run-manifest "$AUDIT/RUN_MANIFEST.json" \
+  --final-qc "$QC/FINAL_QC.json" --policy "$AUDIT/business_evidence/Baseline_Policy.csv" \
+  --comparison "$AUDIT/comparison/BASELINE_COMPARISON.json" --private-folder "$QC/Private_Render" --destination "$COMBINED"
+"$PYTHON" "$AUDIT/code/run_sas_logged.py" "$SAS_EXE" -nodms -noterminal \
+  -sysin "$COMBINED/Render_Combined_QC.sas" -sysparm "$COMBINED" \
+  -log "$COMBINED/Render.log" -print "$COMBINED/Render.lst"
+"$PYTHON" "$AUDIT/code/normalize_combined_qc.py" --folder "$COMBINED"
+"$PYTHON" "$AUDIT/code/validate_combined_qc.py" --folder "$COMBINED"
 "$PYTHON" "$AUDIT/code/check_transfer_gate.py" --run-manifest "$AUDIT/RUN_MANIFEST.json" \
   --final-qc "$QC/FINAL_QC.json" --report "$REPORT" > "$AUDIT/TRANSFER_GATE.json"
 printf 'INTEGRATED_CANDIDATE_COMPLETE RUN_ID=%s\n' "$RUN_ID"

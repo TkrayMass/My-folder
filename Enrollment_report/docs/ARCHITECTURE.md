@@ -10,7 +10,11 @@ The pipeline executes source controls, distributed-baseline comparison, workbook
 checks, final business QC, technical QC rendering, and primary comparison QC
 rendering/validation. The transfer gate requires matching run/date, all required
 controls, complete QC, consistent PASS/REVIEW decisions, and report identity.
-The release package binds the report and QC artifacts. Owner QC mail is submitted
+The release package binds the report and QC artifacts. One combined workbook
+contains summary, prior/current matrix, comparison
+detail, and technical detail. Original render artifacts remain internal evidence.
+The combined export is checked cell-by-cell and hash-bound before mail.
+Owner QC mail is submitted
 before LATEST_RELEASE.json is atomically advanced. Failed/uncertain mail submission
 blocks the handoff and is not blindly retried.
 

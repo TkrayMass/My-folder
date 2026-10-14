@@ -6,6 +6,9 @@ test_only_matching_notified_publication_advances_baseline (test_baseline_promoti
 test_hash_verified_review_kept_visible (test_business_qc.QCGate.test_hash_verified_review_kept_visible) ... ok
 test_missing_controls_block_technical_pass (test_business_qc.QCGate.test_missing_controls_block_technical_pass) ... ok
 test_other_run_cannot_authorize_current_run (test_business_qc.QCGate.test_other_run_cannot_authorize_current_run) ... ok
+test_changed_policy_and_technical_input_are_rejected (test_combined_qc.CombinedQCTests.test_changed_policy_and_technical_input_are_rejected) ... ok
+test_comparison_and_technical_counts_remain_separate (test_combined_qc.CombinedQCTests.test_comparison_and_technical_counts_remain_separate) ... ok
+test_normalization_clears_only_expected_missing_placeholders (test_combined_qc.CombinedQCTests.test_normalization_clears_only_expected_missing_placeholders) ... ok
 test_integer_counts_stay_exact (test_cross_sheet_precision.PrecisionTests.test_integer_counts_stay_exact) ... ok
 test_larger_ratio_difference_rejected (test_cross_sheet_precision.PrecisionTests.test_larger_ratio_difference_rejected) ... ok
 test_observed_native_precision (test_cross_sheet_precision.PrecisionTests.test_observed_native_precision) ... ok
@@ -35,6 +38,6 @@ test_numbered_error_retains_qc_and_blocks_completion (test_run_tracking.RunTrack
 test_warning_allowed_but_candidate_not_published_and_invalid_evidence_blocked (test_transfer_gate.TransferGateTests.test_warning_allowed_but_candidate_not_published_and_invalid_evidence_blocked) ... ok
 
 ----------------------------------------------------------------------
-Ran 33 tests in 2.287s
+Ran 36 tests in 2.667s
 
 OK (skipped=1)

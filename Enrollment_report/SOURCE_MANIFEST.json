@@ -13,8 +13,13 @@
     },
     {
       "path": "docs/ARCHITECTURE.md",
-      "sha256": "f04c302bc43c076894cc6cbf5fd922073906b6fcde7e2eb468163d9946d423fa",
+      "sha256": "d7c26a97d5d546b690ae0870aed527657ddb8d17ab4f32f28edc918de739401e",
       "role": "package documentation/support"
+    },
+    {
+      "path": "docs/COMBINED_QC.md",
+      "role": "package validation/support",
+      "sha256": "05197b7b12ce6f602b7e626a00aa57d2f08568533c177ef0350d3c45373d2813"
     },
     {
       "path": "docs/DEPLOYMENT.md",
@@ -38,7 +43,7 @@
     },
     {
       "path": "docs/VALIDATION.md",
-      "sha256": "61331cb9323111a7ed3bcaf0befdbd5a0c46f75c0ff54c5a3edf04afdc8836a8",
+      "sha256": "3fa20c01434e8121d44d9f883cbf8ed005200716e1f37924a03f344602b72979",
       "role": "package documentation/support"
     },
     {
@@ -102,7 +107,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "c1affdde9f23c9d2d7e4c6243574deb5cde586be800246385bfd6a9a3c7b271d",
+      "sha256": "d8b00822e5dbf9704fa7cd52e59f3184cfdad5bce8d657538d097b2ceb4da3cb",
       "role": "package documentation/support"
     },
     {
@@ -165,6 +170,12 @@
       "role": "installed Linux source"
     },
     {
+      "path": "src/linux/normalize_combined_qc.py",
+      "role": "installed Linux source",
+      "sha256": "68b47b6d824cee9b5251bcb70c142b929be43335875a95e8617786eb68473a94",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/normalize_combined_qc.py"
+    },
+    {
       "path": "src/linux/normalize_full_report.py",
       "sha256": "dfad47e5312c5c5160824d24f34e394892c7ed8e400aa4066adffaf957a1cd41",
       "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/normalize_full_report.py",
@@ -175,6 +186,12 @@
       "sha256": "975b9aca95d74f8dee31edb1d804313e0a78d954260a460b6ec1e33ffc3a3fa2",
       "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/normalize_report_font.py",
       "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/prepare_combined_qc.py",
+      "role": "installed Linux source",
+      "sha256": "b53cca4e950cca416c8ff9c9bf5a9ce37c50b60c5e4f6bf2528ff5bf02abfc3d",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/prepare_combined_qc.py"
     },
     {
       "path": "src/linux/prepare_primary_qc.py",
@@ -190,7 +207,7 @@
     },
     {
       "path": "src/linux/prepare_transfer_package.py",
-      "sha256": "268f8733818cd4d6deae7cdafa4db5fb71521f708db73c3c9c891f8cd0ec1cd5",
+      "sha256": "263a60007fe2b2a144e4a57a1f7484190ff030f742ea374192ab564bf714f7b3",
       "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/prepare_transfer_package.py",
       "role": "installed Linux source"
     },
@@ -220,7 +237,7 @@
     },
     {
       "path": "src/linux/run_enrollment_integrated_candidate.sh",
-      "sha256": "f1f7333fb2e91acdc470b9dc1e8900d3496a658d4397c321f5ecea2546ffeaa9",
+      "sha256": "a96e39f2dcbabc0f8b97e89daaa8ea69ba479d94a666465a8f087fedaf09a974",
       "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/run_enrollment_integrated_candidate.sh",
       "role": "installed Linux source"
     },
@@ -250,9 +267,15 @@
     },
     {
       "path": "src/linux/send_qc_email.py",
-      "sha256": "4380d99dcd587ca763b89a2dd5ac584859157eaca7b3956cfb8c8f436d9d092a",
+      "sha256": "fc1df941d66c74e68a081c941db102c97e6a5287f428ededf0b99024a6354381",
       "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/send_qc_email.py",
       "role": "installed Linux source"
+    },
+    {
+      "path": "src/linux/validate_combined_qc.py",
+      "role": "installed Linux source",
+      "sha256": "93ddd7dadb04970d5fe11f9bd55be314dbbb7e0899fa8110310cf03b351b7c82",
+      "source": "/sas_mass_health/shared/tkray/Enrollment/Reports/ACO_REBUILD_XLSX/integrated_scheduled_v1/validate_combined_qc.py"
     },
     {
       "path": "src/linux/validate_cross_sheet.py",
@@ -640,7 +663,7 @@
     },
     {
       "path": "src/windows/transfer_rebuilt_windows.py",
-      "sha256": "51c0af7349abaf177638266635ad7d5276669890098be9bd95497079c03a8b0d",
+      "sha256": "d84ebd9cd6e6e7e61c68f3a4be089549a6c36bfb29d7172f821076b9b598f34d",
       "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Ad Hoc\\Enrollment_Rebuilt_Runtime\\transfer_rebuilt_windows.py",
       "role": "installed Windows source; Thursday date-selection fix tested and installed October 14"
     },
@@ -653,7 +676,7 @@
     {
       "path": "TEST_RESULTS.txt",
       "role": "package validation/support",
-      "sha256": "90d629e83248146f8853d1773ba0435e8d7eeaac6652f0e099568864f29418ad"
+      "sha256": "06fd87e8df1f4a15b8a37a0191753c9944c68d5ed2c7bfb33b9876bfd7ad4517"
     },
     {
       "path": "tests/run_tests.py",
@@ -685,6 +708,11 @@
       "role": "existing regression test adapted to package layout"
     },
     {
+      "path": "tests/test_combined_qc.py",
+      "role": "package validation/support",
+      "sha256": "1e14154325c1d485c7593d6561d04e9f8a0f377eda08da817da8b007e21187eb"
+    },
+    {
       "path": "tests/test_cross_sheet_precision.py",
       "sha256": "93dfcab1fb22af62ce0d304cc69087c24a470db130552e3abedb3b786b7cdcc9",
       "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_cross_sheet_precision.py",
@@ -710,7 +738,7 @@
     },
     {
       "path": "tests/test_qc_email.py",
-      "sha256": "2cbad805d23b1e0340520fd36835689c88df533d6a1fac2c451438c170d1210a",
+      "sha256": "8b92fefd41965e91fbd47837ef5caa3b52c8cb7caeb1fc5bde7f43495e23b4ef",
       "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_qc_email.py",
       "role": "existing regression test adapted to package layout"
     },
