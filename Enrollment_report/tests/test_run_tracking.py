@@ -4,7 +4,7 @@ from pathlib import Path
 source=Path(__file__).resolve().parent.parent/'src/linux'/'finalize_enrollment_run.py'
 spec=importlib.util.spec_from_file_location('finalizer',source)
 mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
-test_root=Path(__file__).resolve().parent/'Validation'/'run_tracking_tests'
+test_root=Path(__file__).resolve().parent/'Validation'
 test_root.mkdir(parents=True,exist_ok=True)
 assert test_root.resolve().is_relative_to(Path(__file__).resolve().parent)
 

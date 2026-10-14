@@ -35,6 +35,6 @@ test_numbered_error_retains_qc_and_blocks_completion (test_run_tracking.RunTrack
 test_warning_allowed_but_candidate_not_published_and_invalid_evidence_blocked (test_transfer_gate.TransferGateTests.test_warning_allowed_but_candidate_not_published_and_invalid_evidence_blocked) ... ok
 
 ----------------------------------------------------------------------
-Ran 33 tests in 2.881s
+Ran 33 tests in 2.287s
 
 OK (skipped=1)

@@ -653,7 +653,7 @@
     {
       "path": "TEST_RESULTS.txt",
       "role": "package validation/support",
-      "sha256": "82060c31c371b45b777cda5b5c1abe48c7143e9a327f7f8b216241112d0f150b"
+      "sha256": "90d629e83248146f8853d1773ba0435e8d7eeaac6652f0e099568864f29418ad"
     },
     {
       "path": "tests/run_tests.py",
@@ -674,7 +674,7 @@
     },
     {
       "path": "tests/test_baseline_promotion.py",
-      "sha256": "a4a49fda3b0c8fa38191558f5b037d3ce04e8e614780392d997199e856f7346d",
+      "sha256": "8b90d3e99f9f92d41f62b3cff2b460206dcd9bcad8615e8a1175c319f0cf41cf",
       "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_baseline_promotion.py",
       "role": "existing regression test adapted to package layout"
     },
@@ -722,7 +722,7 @@
     },
     {
       "path": "tests/test_run_tracking.py",
-      "sha256": "40c5662f66e19b1cf2ef9091fedd11fc1bcd6b844aba9ffbffe1554bf696ef3b",
+      "sha256": "f7af85869ccd13dfbf1ad7abd41c18070579b4621fe05e5464c8b314769043ce",
       "source": "C:\\Users\\TKray\\OneDrive - Commonwealth of Massachusetts\\Desktop\\Monthly Advocacy\\Weekly enrollment\\Enrollment_Rebuild\\test_run_tracking.py",
       "role": "existing regression test adapted to package layout"
     },

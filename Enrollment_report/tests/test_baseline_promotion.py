@@ -6,7 +6,7 @@ from check_transfer_gate import digest
 
 class BaselinePromotionTests(unittest.TestCase):
     def test_only_matching_notified_publication_advances_baseline(self):
-        root=Path(__file__).parent/'Validation'/('promotion_'+uuid.uuid4().hex)
+        root=Path(__file__).parent/'Validation'/('p_'+uuid.uuid4().hex[:8])
         root.mkdir();previous=root/'previous';previous.mkdir()
         (previous/'BASELINE_MANIFEST.json').write_text(json.dumps({'report_date':'20261007'}))
         pointer=root/'CURRENT_DISTRIBUTED_BASELINE.txt';pointer.write_text(str(previous)+'\n')
